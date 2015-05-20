@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ColorListPreference">
+        <attr name="patternSV" format="string"/>
+        <attr name="paletteSize" format="dimension"/>
+        <attr name="paletteFillRatio" format="float"/>
+        <attr name="autoSummary" format="boolean"/>
+    </declare-styleable>
+</resources>

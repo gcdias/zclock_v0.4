@@ -1,0 +1,13 @@
+<resources>
+
+	<!-- Base application theme. -->
+    <style name="PrefsTheme" parent="ThemeOverlay.AppCompat.Dark">
+        <item name="android:fontFamily">sans-serif-thin</item>
+	</style>
+
+    <style name="AppTheme" parent="Theme.AppCompat.Light">
+        <item name="android:fontFamily">sans-serif-thin</item>
+    </style>
+
+
+</resources>

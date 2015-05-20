@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<color name="cClockFrameOn">#ff00c3ff</color>
+	<color name="cClockFrameOff">#1000c3ff</color>
+	<color name="cZmanim_sun">#ff00c3ff</color>
+	<color name="cZmanim_main">#a020c3ff</color>
+	<color name="cZmanimAlotTzet">#800090c0</color>
+	<color name="cTimemarks">#80ffffff</color>
+	<color name="cTime">#ffffffff</color>
+	<color name="cDate">#c3ffffff</color>
+	<color name="cParshat">#80ffffff</color>
+	<color name="cShemot">#07ffffff</color>
+
+    <string-array name="themeName">
+        <item>Zmanim Clock</item>
+        <item>Lime</item>
+        <item>Green</item>
+        <item>Emerald</item>
+        <item>Teal</item>
+        <item>Cyan</item>
+        <item>Cobalt</item>
+        <item>Indigo</item>
+        <item>Violet</item>
+        <item>Pink</item>
+        <item>Magenta</item>
+        <item>Crimson</item>
+        <item>Red</item>
+        <item>Orange</item>
+        <item>Amber</item>
+        <item>Yellow</item>
+        <item>Brown</item>
+        <item>Olive</item>
+        <item>Steel</item>
+        <item>Mauve</item>
+        <item>Sienna</item>
+    </string-array>
+    <string-array name="themeColor">
+        <item>#00C3FF</item>
+        <item>#A4C400</item>
+        <item>#60A917</item>
+        <item>#008A00</item>
+        <item>#00ABA9</item>
+        <item>#1BA1E2</item>
+        <item>#0050EF</item>
+        <item>#6A00FF</item>
+        <item>#AA00FF</item>
+        <item>#F472D0</item>
+        <item>#D80073</item>
+        <item>#A20025</item>
+        <item>#E51400</item>
+        <item>#FA6800</item>
+        <item>#F0A30A</item>
+        <item>#E3C800</item>
+        <item>#825A2C</item>
+        <item>#6D8764</item>
+        <item>#647687</item>
+        <item>#76608A</item>
+        <item>#A0522D</item>
+    </string-array>
+    <string name ="themePattern">#FF00C3FF,#2000C3FF,#a020c3ff,#800090c0,#FFFFFFFF,#80FFFFFF,#C3FFFFFF,#10FFFFFF</string>
+</resources>

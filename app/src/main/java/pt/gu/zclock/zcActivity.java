@@ -61,13 +61,13 @@ public class zcActivity extends ActionBarActivity {
             x.setText("Hello Clock!");
         }
 
-        
+
         if (mode == 5) {
             lClock.setVisibility(View.INVISIBLE);
             lText.setVisibility(View.VISIBLE);
             String text = mPrefs.getString("currentPasuk","(no string)");
-            XTextView x = (XTextView)findViewById(R.id.textTorah);
-            //x.setTypeface(stm);
+            TextView x = (TextView)findViewById(R.id.textTorah);
+            x.setTypeface(stm);
             x.setText(text);
         }
     }

@@ -9,9 +9,9 @@
 
     <LinearLayout android:id="@+id/torah_layout" android:visibility="visible"
         android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-        <pt.gu.zclock.XTextView android:id="@+id/textTorah"
+        <TextView android:id="@+id/textTorah"
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:textSize="28sp" android:text="Torah"/>
+            android:textSize="26sp" android:textColor="#000" android:text="Torah"/>
 
     </LinearLayout>
     <LinearLayout android:id="@+id/clock_layout" android:visibility="visible"

@@ -9,5 +9,22 @@
         <item name="android:fontFamily">sans-serif-thin</item>
     </style>
 
+    <style name="infoGematria" parent="AppTheme">
+        <item name="android:textColor">#222</item>
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:padding">6dp</item>
+    </style>
+    
+    <style name="hscrollChilufi" parent="AppTheme">
+        <item name="android:layout_width">216dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">6dp</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textColor">#000</item>
+    </style>
+
 
 </resources>

@@ -24,7 +24,7 @@ import java.util.Date;
 public class zcHelper {
 
     private static final String TAG ="zcHelper";
-    private static final boolean debug = true;
+    private static final boolean debug = false;
 
     public enum owmCode {
         UNKNOWN(Integer.MIN_VALUE),

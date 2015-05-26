@@ -1,7 +1,6 @@
 package pt.gu.zclock;
 
 import android.appwidget.AppWidgetManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -18,9 +17,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 import java.text.BreakIterator;
+
+import static pt.gu.zclock.kblh.Chilufi;
+import static pt.gu.zclock.kblh.Gematria;
+import static pt.gu.zclock.kblh.Mispar;
+import static pt.gu.zclock.kblh.hString;
 
 
 public class zcActivity extends ActionBarActivity {
@@ -29,18 +35,38 @@ public class zcActivity extends ActionBarActivity {
     private final boolean       debug   = true;
     private final String        TAG     = "zcActivity";
     private int                 appWidgetId;
-
-    private Context             mContext;
+    private Typeface            stm;
+    private int[]               layouts = new int[]{R.layout.zca_layout02,
+                                                    R.layout.zca_layout02,
+                                                    R.layout.zca_layout02,
+                                                    R.layout.zca_layout5,
+                                                    R.layout.zca_layout5,
+                                                    R.layout.zca_layout5};
+    private int[]               menus   = new int[]{R.layout.zca_layout02,
+                                                    R.layout.zca_layout02,
+                                                    R.layout.zca_layout02,
+                                                    R.layout.zca_layout5,
+                                                    R.layout.zca_layout5,
+                                                    R.layout.zca_layout5};
     private SharedPreferences   mPrefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.zc_activity);
-
+        stm = Typeface.createFromAsset(getAssets(), "fonts/stmvelish.ttf");
         mPrefs  = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
+    }
+
+    @Override
+    public void onStart(){
+        super.onStart();
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
         setResult(RESULT_CANCELED);
 
         Intent intent = getIntent();
@@ -56,31 +82,128 @@ public class zcActivity extends ActionBarActivity {
             finish();
         }
 
-        Typeface stm = Typeface.createFromAsset(getAssets(), "fonts/stmvelish.ttf");
         int mode = mPrefs.getInt("clockMode"+appWidgetId,0);
-        LinearLayout lClock = (LinearLayout)findViewById(R.id.clock_layout);
-        LinearLayout lText = (LinearLayout)findViewById(R.id.torah_layout);
-        if (mode <5){
-            lClock.setVisibility(View.VISIBLE);
-            lText.setVisibility(View.INVISIBLE);
-            TextView x = (TextView)findViewById(R.id.textTorah);
-            x.setTypeface(stm);
-            x.setText("Hello Clock!");
+        setContentView(layouts[mode]);
+
+        if (mode == 5) {
+            setContentView(R.layout.zca_layout5);
+            drawGematria();
+        }
+    }
+
+    @Override
+    public void onStop(){
+        super.onStop();
+
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+
+    }
+
+    private void drawGematria() {
+        stm = Typeface.createFromAsset(getAssets(), "fonts/stmvelish.ttf");
+        hString text = new hString(mPrefs.getString("currentPasuk", "(no string)"));
+        text.removeBreakSymbs();
+        Gematria gematria = new Gematria(text);
+        LinearLayout llPasuk = (LinearLayout)findViewById(R.id.ll_pasuk);
+        llPasuk.removeAllViews();
+
+        addTextView(R.id.ll_pasuk,R.layout.zcah_pasuk,stm, text.format(hString.hFormat.Nequdot));
+
+        //setClicableText(text.format(hString.hFormat.Nequdot), R.id.textTorah);
+
+        addTextView(R.id.LayoutGemInfo, R.layout.zca_tvgeminfo, "Milim", gematria.getMilim().length);
+        addTextView(R.id.LayoutGemInfo, R.layout.zca_tvgeminfo, "Otiot", gematria.getOtiotseq().length());
+        addTextView(R.id.LayoutGemInfo, R.layout.zca_tvgeminfo, "Gemat", gematria.getGematria(Mispar.MisparHechrachi));
+        addTextView(R.id.LayoutGemInfo, R.layout.zca_tvgeminfo, "Tagin", gematria.getGematria(Mispar.MisparTagin));
+
+        TableLayout tb = (TableLayout)findViewById(R.id.tbTorah);
+        tb.removeAllViews();
+        int n =gematria.getOtiotseq().length();
+        if (n>0 && n<101){
+            String[] m = getResources().getStringArray(R.array.tMatrix)[n-1].split(",");
+            int rows = Integer.valueOf(m[1]);
+            int cols = Integer.valueOf(m[0]);
+            if (cols>1&&rows<18){
+                String[][] matrix = gematria.getMatrix(rows,cols);
+                if (matrix!=null) {
+                    drawGematriaMatrix(rows,cols,matrix);
+                }
+            }
         }
 
 
-        if (mode == 5) {
-            lClock.setVisibility(View.INVISIBLE);
-            lText.setVisibility(View.VISIBLE);
-            String text = mPrefs.getString("currentPasuk", "(no string)");
-            text = zcHelper.hebString.removeBreakSymbs(text);
-            text = zcHelper.hebString.toNiqqud(text);
-            TextView x = (TextView)findViewById(R.id.textTorah);
-            x.setTypeface(stm);
-            setClicableText(text, R.id.textTorah);
-            TextView info = (TextView)findViewById(R.id.textInfo);
-            kblh.Gematria gematria = new kblh.Gematria(text);
-            info.setText(String.format("Milim %d, Otiot %d",gematria.MilimCount(),gematria.OtiotCount()));
+    }
+
+    private void updateWordInfo(String word) {
+        Gematria gematria = new Gematria(word);
+        LinearLayout layout = (LinearLayout)findViewById(R.id.LayoutWordInfo);
+        layout.removeAllViews();
+        addTextView(R.id.LayoutWordInfo, R.layout.zca_tvgeminfo, word);
+        addTextView(R.id.LayoutWordInfo, R.layout.zca_tvgeminfo, getString(R.string.mispar_hechrachi), gematria.getGematria(Mispar.MisparHechrachi));
+        addTextView(R.id.LayoutWordInfo,R.layout.zca_tvgeminfo,"ATBaSh "+gematria.getChilufi(Chilufi.Atbash));
+        addTextView(R.id.LayoutWordInfo,R.layout.zca_tvgeminfo,"ATBaCh "+gematria.getChilufi(Chilufi.Atbach));
+        addTextView(R.id.LayoutWordInfo,R.layout.zca_tvgeminfo,"ALBaM "+gematria.getChilufi(Chilufi.Albam));
+        addTextView(R.id.LayoutWordInfo,R.layout.zca_tvgeminfo,"AChBi "+gematria.getChilufi(Chilufi.Achbi));
+        addTextView(R.id.LayoutWordInfo, R.layout.zca_tvgeminfo, "AchasBeta " + gematria.getChilufi(Chilufi.AchasBeta));
+        addTextView(R.id.LayoutWordInfo, R.layout.zca_tvgeminfo, "AyiqBeker " + gematria.getChilufi(Chilufi.AyiqBekher));
+    }
+
+    private void addTextView(int layoutId, int layoutRes, String cap, int val) {
+        LinearLayout info = (LinearLayout)findViewById(layoutId);
+        TextView tv = (TextView) View.inflate(this, layoutRes, null);
+        tv.setText(String.format("%s %d", cap, val));
+        info.addView(tv);
+    }
+
+    private void addTextView(int layoutId, int layoutRes, String cap) {
+        LinearLayout info = (LinearLayout)findViewById(layoutId);
+        TextView tv = (TextView) View.inflate(this, layoutRes, null);
+        tv.setText(cap);
+        info.addView(tv);
+    }
+
+    private void addTextView(int layoutId, int layoutRes, Typeface t, String cap) {
+        LinearLayout info = (LinearLayout)findViewById(layoutId);
+        TextView tv = (TextView) View.inflate(this, layoutRes, null);
+        tv.setTypeface(t);
+        tv.setText(cap);
+        tv.setMovementMethod(LinkMovementMethod.getInstance());
+        tv.setText(cap, TextView.BufferType.SPANNABLE);
+        Spannable spans = (Spannable) tv.getText();
+        BreakIterator iterator = BreakIterator.getWordInstance();
+        iterator.setText(cap);
+        int start = iterator.first();
+        for (int end = iterator.next(); end != BreakIterator.DONE; start = end, end = iterator
+                .next()) {
+            String word = cap.substring(start, end);
+            if (Character.isLetterOrDigit(word.charAt(0))) {
+                ClickableSpan clickSpan = getClickableSpan(word);
+                spans.setSpan(clickSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+        }
+        info.addView(tv);
+    }
+
+    private void drawGematriaMatrix(int rows,int cols, String[][] matrix){
+        stm = Typeface.createFromAsset(getAssets(), "fonts/stmvelish.ttf");
+        TableLayout tSq = (TableLayout)findViewById(R.id.tbTorah);
+        tSq.removeAllViews();
+        TableRow.LayoutParams rowParms = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
+        for (int i =0;i<rows;i++){
+            TableRow tr = new TableRow(this);
+            tr.setLayoutParams(rowParms);
+            for (int j = cols-1; j >-1; j--){
+
+                TextView textView = (TextView) View.inflate(this, R.layout.zcact_matrix, null);
+                textView.setTypeface(stm);
+                textView.setText(matrix[i][j]);
+                tr.addView(textView);
+            }
+            tSq.addView(tr);
         }
     }
 
@@ -142,9 +265,7 @@ public class zcActivity extends ActionBarActivity {
             @Override
             public void onClick(View widget) {
                 Log.d("tapped on:", mWord);
-                TextView gem = (TextView)findViewById(R.id.wordTorah);
-                kblh.Gematria g = new kblh.Gematria(word);
-                gem.setText(String.format("Gematria %d",g.getGematria(kblh.Mispar.MisparHechrachi)));
+                updateWordInfo(word);
                 //Toast.makeText(widget.getContext(), mWord, Toast.LENGTH_SHORT).show();
             }
 

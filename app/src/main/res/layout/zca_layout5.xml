@@ -2,14 +2,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical"
     tools:context="pt.gu.zclock.zcActivity">
-    <LinearLayout android:id="@+id/torah_layout"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        android:paddingTop="@dimen/activity_vertical_margin"
-        android:paddingBottom="@dimen/activity_vertical_margin"
-        android:visibility="visible" android:background="@drawable/act_textview"
+    <LinearLayout android:id="@+id/torah_layout" android:padding="@dimen/activity_horizontal_margin" android:background="@drawable/act_textview"
         android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-
         <LinearLayout android:id="@+id/ll_pasuk" android:orientation="horizontal"
             android:layout_width="fill_parent" android:layout_height="fill_parent"/>
         <ScrollView android:layout_width="fill_parent" android:layout_height="wrap_content">
@@ -23,7 +17,7 @@
                 </HorizontalScrollView>
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#ddd"/>
                 <TableLayout android:id="@+id/tbTorah" android:layout_width="fill_parent" android:layout_height="wrap_content"
-                    android:layout_gravity="center" android:padding="6dp"/>
+                    android:layout_gravity="center" android:padding="6dp" android:onClick="tbGematriaClick"/>
             </LinearLayout>
         </ScrollView>
     </LinearLayout>

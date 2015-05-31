@@ -12,10 +12,9 @@
 	<pt.gu.zclock.ColorListPreference
         android:title="Color Theme"
 		android:key="colorTheme"
-		android:defaultValue="#00C3FF"
-		android:entries="@array/themeName"
-		android:entryValues="@array/themeColor"
-		colorpref:patternSV="@string/themePattern"
+		android:defaultValue="#FF00C3FF,#2000C3FF,#a020c3ff,#800090c0,#FFFFFFFF,#80FFFFFF,#C3FFFFFF,#10FFFFFF"
+		android:entries="@array/themeUser"
+		android:entryValues="@array/themeUserColor"
 		colorpref:paletteSize="42dp"/>
 	<ListPreference
 		android:defaultValue="@integer/clockMode"

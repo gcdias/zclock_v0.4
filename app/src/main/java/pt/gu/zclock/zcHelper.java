@@ -2,6 +2,9 @@ package pt.gu.zclock;
 
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
@@ -307,7 +310,7 @@ public class zcHelper {
             int a = Color.alpha(color);
             Color.colorToHSV(color,hsv);
             hsv[0] = hue;
-            return Color.HSVToColor(a,hsv);
+            return Color.HSVToColor(a, hsv);
         }
 
         public static float getHue(int color){
@@ -316,13 +319,27 @@ public class zcHelper {
             return hsv[0];
         }
 
+        public static int setLum(float lum, int color){
+            float ahsl[] = ColorToAHSL(color);
+            ahsl[3] = lum;
+            return AHSLToColor(ahsl);
+        }
+
+        public static int setVal(float val, int color){
+            float hsv[] = new float[3];
+            int a = Color.alpha(color);
+            Color.colorToHSV(color,hsv);
+            hsv[2] = val;
+            return Color.HSVToColor(a, hsv);
+        }
+
         public static int copyHue(int source, int dest) {
             float h = getHue(dest);
             return setHue(h,source);
         }
 
         public static float[] ColorToAHSL(int color){
-            float hsv[] = new float[3];
+            float hsv[] = new float[4];
             Color.colorToHSV(color,hsv);
             float hsl[] = HSVtoHSL(hsv);
             return new float[]{Color.alpha(color),hsl[0],hsl[1],hsl[2]};
@@ -372,6 +389,126 @@ public class zcHelper {
             hsv[2] = (hsl[1]+hsl[2])/2;
             hsv[1] = 2*hsl[1] / (hsl[2]+hsl[1]);
             return hsv;
+        }
+
+        private static double DELTA_INDEX[] = {
+                0,    0.01, 0.02, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1,  0.11,
+                0.12, 0.14, 0.15, 0.16, 0.17, 0.18, 0.20, 0.21, 0.22, 0.24,
+                0.25, 0.27, 0.28, 0.30, 0.32, 0.34, 0.36, 0.38, 0.40, 0.42,
+                0.44, 0.46, 0.48, 0.5,  0.53, 0.56, 0.59, 0.62, 0.65, 0.68,
+                0.71, 0.74, 0.77, 0.80, 0.83, 0.86, 0.89, 0.92, 0.95, 0.98,
+                1.0,  1.06, 1.12, 1.18, 1.24, 1.30, 1.36, 1.42, 1.48, 1.54,
+                1.60, 1.66, 1.72, 1.78, 1.84, 1.90, 1.96, 2.0,  2.12, 2.25,
+                2.37, 2.50, 2.62, 2.75, 2.87, 3.0,  3.2,  3.4,  3.6,  3.8,
+                4.0,  4.3,  4.7,  4.9,  5.0,  5.5,  6.0,  6.5,  6.8,  7.0,
+                7.3,  7.5,  7.8,  8.0,  8.4,  8.7,  9.0,  9.4,  9.6,  9.8,
+                10.0
+        };
+
+        public static void adjustHue(ColorMatrix cm, float value)
+        {
+            value = cleanValue(value, 180f) / 180f * (float) Math.PI;
+            if (value == 0){
+                return;
+            }
+
+            float cosVal = (float) Math.cos(value);
+            float sinVal = (float) Math.sin(value);
+            float lumR = 0.213f;
+            float lumG = 0.715f;
+            float lumB = 0.072f;
+            float[] mat = new float[]
+                    {
+                            lumR + cosVal * (1 - lumR) + sinVal * (-lumR), lumG + cosVal * (-lumG) + sinVal * (-lumG), lumB + cosVal * (-lumB) + sinVal * (1 - lumB), 0, 0,
+                            lumR + cosVal * (-lumR) + sinVal * (0.143f), lumG + cosVal * (1 - lumG) + sinVal * (0.140f), lumB + cosVal * (-lumB) + sinVal * (-0.283f), 0, 0,
+                            lumR + cosVal * (-lumR) + sinVal * (-(1 - lumR)), lumG + cosVal * (-lumG) + sinVal * (lumG), lumB + cosVal * (1 - lumB) + sinVal * (lumB), 0, 0,
+                            0f, 0f, 0f, 1f, 0f,
+                            0f, 0f, 0f, 0f, 1f };
+            cm.postConcat(new ColorMatrix(mat));
+        }
+
+        public static void adjustBrightness(ColorMatrix cm, float value) {
+            value = cleanValue(value,100);
+            if (value == 0) {
+                return;
+            }
+
+            float[] mat = new float[]
+                    {
+                            1,0,0,0,value,
+                            0,1,0,0,value,
+                            0,0,1,0,value,
+                            0,0,0,1,0,
+                            0,0,0,0,1
+                    };
+            cm.postConcat(new ColorMatrix(mat));
+        }
+
+        public static void adjustContrast(ColorMatrix cm, int value) {
+            value = (int)cleanValue(value,100);
+            if (value == 0) {
+                return;
+            }
+            float x;
+            if (value < 0) {
+                x = 127 + value / 100*127;
+            } else {
+                x = value % 1;
+                if (x == 0) {
+                    x = (float)DELTA_INDEX[value];
+                } else {
+                    //x = DELTA_INDEX[(p_val<<0)]; // this is how the IDE does it.
+                    x = (float)DELTA_INDEX[(value<<0)]*(1-x) + (float)DELTA_INDEX[(value<<0)+1] * x; // use linear interpolation for more granularity.
+                }
+                x = x*127+127;
+            }
+
+            float[] mat = new float[]
+                    {
+                            x/127,0,0,0, 0.5f*(127-x),
+                            0,x/127,0,0, 0.5f*(127-x),
+                            0,0,x/127,0, 0.5f*(127-x),
+                            0,0,0,1,0,
+                            0,0,0,0,1
+                    };
+            cm.postConcat(new ColorMatrix(mat));
+
+        }
+
+        public static void adjustSaturation(ColorMatrix cm, float value) {
+            value = cleanValue(value,100);
+            if (value == 0) {
+                return;
+            }
+
+            float x = 1+((value > 0) ? 3 * value / 100 : value / 100);
+            float lumR = 0.3086f;
+            float lumG = 0.6094f;
+            float lumB = 0.0820f;
+
+            float[] mat = new float[]
+                    {
+                            lumR*(1-x)+x,lumG*(1-x),lumB*(1-x),0,0,
+                            lumR*(1-x),lumG*(1-x)+x,lumB*(1-x),0,0,
+                            lumR*(1-x),lumG*(1-x),lumB*(1-x)+x,0,0,
+                            0,0,0,1,0,
+                            0,0,0,0,1
+                    };
+            cm.postConcat(new ColorMatrix(mat));
+        }
+
+        protected static float cleanValue(float p_val, float p_limit) {
+            return Math.min(p_limit, Math.max(-p_limit, p_val));
+        }
+
+        public static ColorFilter adjustColor(int brightness, int contrast, int saturation, int hue){
+            ColorMatrix cm = new ColorMatrix();
+            adjustHue(cm, hue);
+            adjustContrast(cm, contrast);
+            adjustBrightness(cm, brightness);
+            adjustSaturation(cm, saturation);
+
+            return new ColorMatrixColorFilter(cm);
         }
     }
 
@@ -430,7 +567,7 @@ public class zcHelper {
                 this.sys_pod        = json.getJSONObject("sys").getString("pod");
                 return true;
             } catch (JSONException ignore){
-                if (debug) Log.e(TAG, "/WeatherData/parseJSON: "+ignore.toString());
+                if (debug) Log.d(TAG, "/WeatherData/parseJSON: "+ignore.toString());
                 return false;
             }
         }
@@ -439,7 +576,7 @@ public class zcHelper {
             try{
                 return obj.getJSONObject(parent).getDouble(child);
             } catch (JSONException ignore){
-                if (debug) Log.e(TAG, "/WeatherData/tryDouble: "+ ignore.toString());
+                if (debug) Log.d(TAG, "/WeatherData/tryDouble: "+ ignore.toString());
                 return 0;
             }
         }
@@ -448,7 +585,7 @@ public class zcHelper {
             try {
                 return obj.getJSONObject(parent).getInt(child);
             } catch (JSONException ignore) {
-                if (debug) Log.e(TAG, "/WeatherData/tryInt"+ignore.toString());
+                if (debug) Log.d(TAG, "/WeatherData/tryInt"+ignore.toString());
                 return 0;
             }
         }
@@ -478,7 +615,7 @@ public class zcHelper {
             int aa = a.get(this.clouds_all);
             int alpha = a.scale(aa,new Range(90,216));
             //int alpha = new Range(90,216).scale(this.clouds_all,new Range(0,100));
-            if (debug) Log.e(TAG,String.format("getColorCondition/alpha: %d, clouds %d",alpha, this.clouds_all));
+            if (debug) Log.d(TAG,String.format("getColorCondition/alpha: %d, clouds %d",alpha, this.clouds_all));
             return Color.HSVToColor(alpha, hsv);
         }
 
@@ -579,6 +716,11 @@ public class zcHelper {
             if (index>this.date.length-1) return 0;
             float f = (this.date[index].getTime() / 60000f) % 1440;
             return f * 360f / 1440f;
+        }
+
+        public static float timeToRadAngle(long time){
+            float f = (time / 60000f) % 1440;
+            return f * (float)Math.PI / 720f;
         }
 
         public float getMaxWidth() {
@@ -781,14 +923,14 @@ public class zcHelper {
 
         public static int getMilimNumber(String s) {
             s = toOtiot(s);
-            if (debug) Log.e(TAG,s);
+            if (debug) Log.d(TAG,s);
             return s.split("\\s+").length;
 
         }
 
         public static int getOtiotNumber(String s) {
             String seq =getOtiotSequence(s);
-            if (debug) Log.e(TAG,seq);
+            if (debug) Log.d(TAG,seq);
             return seq.length();
         }
 
@@ -945,14 +1087,14 @@ public class zcHelper {
 
         public int getMilimNumber() {
             String s = toOtiot();
-            if (debug) Log.e(TAG,s);
+            if (debug) Log.d(TAG,s);
             return s.split("\\s+").length;
 
         }
 
         public int getOtiotNumber() {
             String seq = getOtiotSequence();
-            if (debug) Log.e(TAG, seq);
+            if (debug) Log.d(TAG, seq);
             return seq.length();
         }
     }

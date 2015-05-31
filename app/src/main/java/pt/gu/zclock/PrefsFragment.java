@@ -34,7 +34,7 @@ public class PrefsFragment
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (debug) Log.e(TAG,"onCreate");
+        if (debug) Log.d(TAG,"onCreate");
 
         mContext  = getActivity().getApplicationContext();
         mLocation = new zcLocation(mContext);
@@ -74,7 +74,7 @@ public class PrefsFragment
     public boolean onPreferenceClick(Preference preference) {
         String key = preference.getKey();
 
-        if (debug) Log.e(TAG,"onPreferenceClick: "+ key);
+        if (debug) Log.d(TAG,"onPreferenceClick: "+ key);
 
         switch (key){
             case "resetDefault":
@@ -91,7 +91,7 @@ public class PrefsFragment
 
     private void setWidgetDefaultPreferences(){
 
-        if (debug) Log.e(TAG,"setWidgetDefaultPreferences");
+        if (debug) Log.d(TAG,"setWidgetDefaultPreferences");
 
         SharedPreferences.Editor ed = sharedPreferences.edit();
 
@@ -148,7 +148,7 @@ public class PrefsFragment
 
     private void updateLocationInfo(Preference preference) {
 
-        if (debug) Log.e(TAG,"updateLocationInfo: "+ preference.getKey());
+        if (debug) Log.d(TAG,"updateLocationInfo: "+ preference.getKey());
 
         String summary = "no gps info";
         if (mLocation.lastUpdate!=0){
@@ -200,7 +200,7 @@ public class PrefsFragment
             return b;
         }
     }
-    private Bitmap drawableToBitmap (Drawable drawable) {
+    public static Bitmap drawableToBitmap (Drawable drawable) {
         if (drawable instanceof BitmapDrawable) {
             return ((BitmapDrawable)drawable).getBitmap();
         }

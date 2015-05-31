@@ -2,6 +2,7 @@ package pt.gu.zclock;
 
 import android.app.PendingIntent;
 import android.app.Service;
+import android.app.WallpaperManager;
 import android.appwidget.AppWidgetManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -18,6 +19,7 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -47,7 +49,7 @@ import pt.gu.zclock.zcHelper.hebString;
 /**
  * Created by GU on 26-04-2015.
  */
-public class zcService extends Service {
+public class zcService extends Service{
 
     private final String       TAG   = "zcService";
     private boolean            debug = true;
@@ -93,6 +95,8 @@ public class zcService extends Service {
     private ComplexZmanimCalendar   zCalendar;
     private JewishCalendar          jCalendar;
 
+    private Drawable                mWallpaper;
+
     private zcHelper.WeatherData[]  weatherForecast;
 
 
@@ -124,31 +128,32 @@ public class zcService extends Service {
             AppWidgetManager manager = AppWidgetManager.getInstance(context);
 
             if (action.equals(Intent.ACTION_SCREEN_OFF)) {
-                if (debug) Log.e(TAG + ".onReceive", "Screen OFF, suspending...");
+                if (debug) Log.d(TAG + ".onReceive", "Screen OFF, suspending...");
                 pmScreenOn = false;
             } else if (action.equals(Intent.ACTION_SCREEN_ON)) {
-                if (debug) Log.e(TAG + ".onReceive", "Screen ON: updating");
+                if (debug) Log.d(TAG + ".onReceive", "Screen ON: updating");
                 pmScreenOn = true;
                 updateWidgets(context, manager, manager.getAppWidgetIds(widgets));
+                updateWallpaper();
             }
 
             if (pmScreenOn) {
-                if (debug) Log.e(TAG + ".onReceive", "Screen on");
+                if (debug) Log.d(TAG + ".onReceive", "Screen on");
                 if (action.equals(Intent.ACTION_TIME_CHANGED) || action.equals(Intent.ACTION_TIMEZONE_CHANGED)) {
                     checkLocation();
-                    if (debug) Log.e(TAG + ".onReceive", "Time/Timezone changed");
+                    if (debug) Log.d(TAG + ".onReceive", "Time/Timezone changed");
                     updateWidgets(context, manager, manager.getAppWidgetIds(widgets));
                 }
 
                 if (action.equals(Intent.ACTION_TIME_TICK)) {
-                    if (debug) Log.e(TAG + ".onReceive", "Time-tick");
+                    if (debug) Log.d(TAG + ".onReceive", "Time-tick");
                     checkLocation();
                     checkForecast();
                     updateWidgets(context, manager, manager.getAppWidgetIds(widgets));
                 }
 
                 if (action.equals(ZC_SETTINGSUPDATE)) {
-                    if (debug) Log.e(TAG + ".onReceive", "ZC_SETTINGSUPDATE Intent");
+                    if (debug) Log.d(TAG + ".onReceive", "ZC_SETTINGSUPDATE Intent");
                     int id = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,AppWidgetManager.INVALID_APPWIDGET_ID);
                     if (id!=AppWidgetManager.INVALID_APPWIDGET_ID) resetClock(id);
                     updateWidgets(context, manager, manager.getAppWidgetIds(widgets));
@@ -156,7 +161,7 @@ public class zcService extends Service {
             }
 
             if (action.equals(ZC_FORECASTUPDATE)){
-                if (debug) Log.e(TAG + "onReceive", "Forecast Update");
+                if (debug) Log.d(TAG + "onReceive", "Forecast Update");
                 weatherForecast = mWeather.get24hForecast(System.currentTimeMillis());
                 mClock.setForecastData(weatherForecast);
             }
@@ -168,9 +173,11 @@ public class zcService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        if (debug) Log.e(TAG, "onCreate");
+        if (debug) Log.d(TAG, "onCreate");
 
         this.mContext          = getApplicationContext();
+
+        this.mWallpaper        = WallpaperManager.getInstance(mContext).getDrawable();
         this.mPrefs            = PreferenceManager.getDefaultSharedPreferences(mContext);
         this.mLocation         = new zcLocation(mContext);
         this.zCalendar         = new ComplexZmanimCalendar(mLocation.geoLocation());
@@ -183,14 +190,14 @@ public class zcService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (debug) Log.e(TAG, "onDestroy");
+        if (debug) Log.d(TAG, "onDestroy");
         unregisterReceiver(intentReceiver);
     }
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
 
-        if (debug) Log.e(TAG, String.format("onStartCommand: %s,%d,%d", intent.getAction(),flags,startId));
+        if (debug) Log.d(TAG, String.format("onStartCommand: %s,%d,%d", intent.getAction(),flags,startId));
 
         registerReceiver(intentReceiver, intentFilter);
 
@@ -207,7 +214,7 @@ public class zcService extends Service {
     public void checkForecast() {
         mPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         if (System.currentTimeMillis()- mPrefs.getLong("lastForecastUpdate",0L) > forecastUpdateTimeout || weatherForecast == null) {
-            if (debug) Log.e(TAG,"/updateForecast: updating");
+            if (debug) Log.d(TAG,"/updateForecast: updating");
             mWeather.updateForecast(mLocation.latitude, mLocation.longitude);
         }
     }
@@ -220,7 +227,7 @@ public class zcService extends Service {
 
         if (now- mPrefs.getLong("lastZmanimUpdate",0) > zmanimUpdateTimeout) {
 
-            if (debug) Log.e(TAG, String.format("updateZmanim: %d,%d",now,newday));
+            if (debug) Log.d(TAG, String.format("updateZmanim: %d,%d",now,newday));
             mLocation.update();
             zCalendar = new ComplexZmanimCalendar(mLocation.geoLocation());
             SharedPreferences.Editor ed = mPrefs.edit();
@@ -246,7 +253,7 @@ public class zcService extends Service {
         switch (cMode) {
 
             default:
-                if (debug) Log.e(TAG, "mClock mode <3");
+                if (debug) Log.d(TAG, "mClock mode <3");
                 updateZmanin(appWidgetId);
                 mClock.setup(appWidgetId,newday);
 
@@ -272,6 +279,29 @@ public class zcService extends Service {
         }
     }
 
+    private void updateWallpaper(){
+        /*
+        Bitmap b = PrefsFragment.drawableToBitmap(mWallpaper).copy(Bitmap.Config.ARGB_8888,true);
+        Canvas c = new Canvas(b);
+        int color = 0x80FFFFFF;
+        if (weatherForecast!= null) color = weatherForecast[0].getColorCondition(0.6f);
+        color = zcHelper.xColor.setAlpha(80,color);
+        float time = zcHelper.timeEvents.timeToRadAngle(Calendar.getInstance().getTime().getTime());
+        float sunrise = zcHelper.timeEvents.timeToRadAngle(zCalendar.getSunrise().getTime());
+        float sunset = zcHelper.timeEvents.timeToRadAngle(zCalendar.getSunset().getTime());
+        zcHelper.RangeF r = new zcHelper.RangeF(1,-1);
+        float y = r.get((float)(Math.acos(sunset)-Math.cos(time-sunrise+sunset)));
+        float lum = r.scale(y,new zcHelper.RangeF(1,0));
+
+        color = zcHelper.xColor.setLum(lum,color);
+        c.drawColor(color);
+        try {
+            WallpaperManager.getInstance(mContext).setBitmap(b);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        */
+    }
     public void resetClock(int appWidgetId) {
 
         mPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
@@ -355,10 +385,6 @@ public class zcService extends Service {
         }
 
         setZmanimMarks(appWidgetId);
-    }
-
-    private long getNewDayShift(int appWidgetId) {
-        return 86400000-(getNewDayTime(appWidgetId)%86400000);
     }
 
     private long getNewDayShift(long newdaytime) {
@@ -502,7 +528,7 @@ public class zcService extends Service {
                 s2 = hebString.decodeB64String(mContext.getResources().getStringArray(R.array.long_shemot)[0]);
                 f = 0f;
             } catch (UnsupportedEncodingException ignored) {
-                if (debug) Log.e("getHashemNames","UnsupportedEncoding");
+                if (debug) Log.d("getHashemNames","UnsupportedEncoding");
             }
 
         } else {
@@ -536,7 +562,7 @@ public class zcService extends Service {
         String pasuk, ref;
         try {
             int i = getParshaHashavuaIndex();
-            if (debug) Log.e("Parsha index",String.valueOf(i));
+            if (debug) Log.d("Parsha index",String.valueOf(i));
 
             String[] source = mContext.getResources().getStringArray(R.array.torah)[i].split("#");
             int[] yom = hebString.decodeB64Int(source[0]);
@@ -565,13 +591,13 @@ public class zcService extends Service {
             }
 
             index = 1 + v + (m * yom[d] / 1440);
-            if (debug) Log.e("Parashat", String.format("parsha %d day %d line %d/%d", i, d + 1, v, index));
+            if (debug) Log.d("Parashat", String.format("parsha %d day %d line %d/%d", i, d + 1, v, index));
             pasuk = parsha[index];
             int iref = pasuk.indexOf(" ");
             ref = (iref > 0) ? pasuk.substring(0, iref) : "error";
             pasuk = (iref > 0) ? pasuk.substring(iref + 1) : String.format("ERRO %d/%d", index, l);
         } catch (Exception ignored) {
-            if (debug) Log.e(TAG,"decoding pasuk error: "+ignored.toString());
+            if (debug) Log.d(TAG,"decoding pasuk error: "+ignored.toString());
             return null;
         }
         mPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
@@ -664,10 +690,13 @@ public class zcService extends Service {
         bitmap = renderBackground(bitmap, bkgDark ? 0x80000000 : 0x80ffffff, 13);
         final Typeface tfStam = Typeface.createFromAsset(mContext.getAssets(), "fonts/stmvelish.ttf");
         final Typeface tfCondN = Typeface.create(mContext.getString(R.string.font_light), Typeface.BOLD);
+
         String[] currentPasuk = getCurrentPasuk();
+        if (currentPasuk==null) return bitmap;
+
         currentPasuk[1] = hebString.removeBreakSymbs(currentPasuk[1]);
         currentPasuk[1] = hebString.toNiqqud(currentPasuk[1]);
-        if (currentPasuk==null) return bitmap;
+
         float y = bitmap.getHeight() * 0.08f + 13f;
 
         //ref
@@ -695,7 +724,7 @@ public class zcService extends Service {
                         String.format("milim %d, otiot %d",milim,otiot),
                         bkgDark ? 0xa0ffffff : 0xa0000000,
                         26f,
-                        bitmap.getHeight() * 0.92f + 13f,
+                        bitmap.getHeight() - 8f,
                         0.9f
                         );
         return bitmap;
@@ -816,12 +845,12 @@ public class zcService extends Service {
 
     private void updateWidgets(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
 
-        if (debug) Log.e(TAG,"updateAppWidgets");
+        if (debug) Log.d(TAG,"updateAppWidgets");
 
         // There may be multiple widgets active, so update all of them
         for (int appWidgetId : appWidgetIds) {
 
-            if (debug) Log.e(TAG,"updateAppWidget id:"+appWidgetId);
+            if (debug) Log.d(TAG,"updateAppWidget id:"+appWidgetId);
 
             RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.main);
 
@@ -840,7 +869,7 @@ public class zcService extends Service {
 
     private void updateWidgetSize(Context context, int appWidgetId) {
 
-        if (debug) Log.e(TAG,"updateWidgetSize");
+        if (debug) Log.d(TAG,"updateWidgetSize");
 
         mPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         Bundle newOptions = AppWidgetManager.getInstance(context).getAppWidgetOptions(appWidgetId);

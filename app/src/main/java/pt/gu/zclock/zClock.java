@@ -193,7 +193,7 @@ public class zClock {
         //Elapsed Time
         p.setColor(cFrame);
         p.setPathEffect(patFrame);
-        if (debug) Log.e("Clock.draw", String.format("ta:%f ndta:%f", time_angle, newdaytime_angle));
+        if (debug) Log.d("Clock.draw", String.format("ta:%f ndta:%f", time_angle, newdaytime_angle));
         float angStart = bClockElapsedTime ? newdaytime_angle : time_angle;
         float angLenght = bClockElapsedTime ? time_angle - newdaytime_angle : newdaytime_angle - time_angle;
         if (angLenght < 0) angLenght += 360;
@@ -289,7 +289,7 @@ public class zClock {
         int[]   res = new int[this.weatherForecast.length];
         float[] pos = new float[this.weatherForecast.length];
 
-        if (debug) Log.e("Clock.zcP.Temp","from URL Weather Data");
+        if (debug) Log.d("Clock.zcP.Temp","from URL Weather Data");
 
         this.startForecastTime = this.weatherForecast[0].getTime();
 
@@ -300,7 +300,7 @@ public class zClock {
         for (WeatherData w : this.weatherForecast){
             int c = Color.argb((int)(w.clouds_all*2.55f),255,255,255);
             pos[i]   = ((float)w.getTime()-(float)this.startForecastTime)/(float)delta;
-            if (debug) Log.e(TAG,"wClouds: "+String.format("Color %08X [Dt%d id%d T%f] @ %.2f",c,w.getTime(),w.weather_id,w.main_temp,pos[i]));
+            if (debug) Log.d(TAG,"wClouds: "+String.format("Color %08X [Dt%d id%d T%f] @ %.2f",c,w.getTime(),w.weather_id,w.main_temp,pos[i]));
             res[i++] = c;
         }
 
@@ -313,7 +313,7 @@ public class zClock {
         int[]   res = new int[this.weatherForecast.length];
         float[] pos = new float[this.weatherForecast.length];
 
-        if (debug) Log.e("Clock.zcP.Temp","from URL Weather Data");
+        if (debug) Log.d("Clock.zcP.Temp","from URL Weather Data");
 
         this.startForecastTime = this.weatherForecast[0].getTime();
 
@@ -324,7 +324,7 @@ public class zClock {
         for (WeatherData w : this.weatherForecast){
             int c = w.getColorCondition(this.startHue);
             pos[i]   = ((float)w.getTime()-(float)this.startForecastTime)/(float)delta;
-            if (debug) Log.e(TAG,"wData: "+String.format("Color %08X [Dt%d id%d T%f] @ %.2f",c,w.getTime(),w.weather_id,w.main_temp,pos[i]));
+            if (debug) Log.d(TAG,"wData: "+String.format("Color %08X [Dt%d id%d T%f] @ %.2f",c,w.getTime(),w.weather_id,w.main_temp,pos[i]));
             res[i++] = c;
         }
 
@@ -336,8 +336,11 @@ public class zClock {
     }
 
     private DashPathEffect renderDashPathEffect(float raio) {
-        float f = (float) (Math.PI * raio * this.resTimeMins / 720);
-        return new DashPathEffect(new float[]{f * this.szTimeMins, f * (1 - this.szTimeMins)}, 0);
+        float f = (float) (Math.PI * raio * this.resTimeMins / 360);
+        float fill = this.szTimeMins<0.5f ? 1f : f-1f;
+        float stro = f-fill;
+        //return new DashPathEffect(new float[]{f * this.szTimeMins, f * (1 - this.szTimeMins)}, 0);
+        return new DashPathEffect(new float[]{fill, stro}, 0);
     }
 
     public PointF getPxClock() {

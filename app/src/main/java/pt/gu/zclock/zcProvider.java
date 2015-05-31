@@ -37,7 +37,7 @@ public class zcProvider extends AppWidgetProvider {
     @Override
     public void onDisabled(Context context) {
         // Enter relevant functionality for when the last widget is disabled
-        if (debug) Log.e(TAG, "onDisabled");
+        if (debug) Log.d(TAG, "onDisabled");
         context.stopService(new Intent(context.getApplicationContext(),zcService.class));
         if (debug) Toast.makeText(context, "zClock removed", Toast.LENGTH_SHORT).show();
         context.getApplicationContext().stopService(new Intent(context.getApplicationContext(), zcService.class));
@@ -52,7 +52,7 @@ public class zcProvider extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         super.onUpdate(context, appWidgetManager, appWidgetIds);
 
-        if (debug) Log.e(TAG, "onUpdate");
+        if (debug) Log.d(TAG, "onUpdate");
         context.startService(new Intent(context,zcService.class));
         context.sendStickyBroadcast(new Intent(zcService.ZC_SETTINGSUPDATE));
 
@@ -63,7 +63,7 @@ public class zcProvider extends AppWidgetProvider {
 
         // When the user deletes the widget, delete the preference associated with it.
 
-        if (debug) Log.e(TAG, "onDeleted "+appWidgetIds.length);
+        if (debug) Log.d(TAG, "onDeleted "+appWidgetIds.length);
 
         for (int appWidgetId : appWidgetIds) {
             removeWidgetPreferences(context, appWidgetId);
@@ -76,7 +76,7 @@ public class zcProvider extends AppWidgetProvider {
     public void onAppWidgetOptionsChanged(Context context, AppWidgetManager appWidgetManager, int appWidgetId, Bundle newOptions) {
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions);
 
-        if (debug) Log.e(TAG,"onAppWidgetOptionsChanged");
+        if (debug) Log.d(TAG,"onAppWidgetOptionsChanged");
 
         //update widgets
         updateWidgetSize(context, appWidgetId);
@@ -85,7 +85,7 @@ public class zcProvider extends AppWidgetProvider {
 
     public void removeWidgetPreferences(Context context,int appWidgetId){
 
-        if (debug) Log.e(TAG,"removeWidgetPreferences");
+        if (debug) Log.d(TAG,"removeWidgetPreferences");
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor ed = sharedPreferences.edit();
 
@@ -144,7 +144,7 @@ public class zcProvider extends AppWidgetProvider {
 
     void updateWidgetSize(Context context, int appWidgetId) {
 
-        if (debug) Log.e(TAG,"updateWidgetSize");
+        if (debug) Log.d(TAG,"updateWidgetSize");
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         Bundle newOptions = AppWidgetManager.getInstance(context).getAppWidgetOptions(appWidgetId);

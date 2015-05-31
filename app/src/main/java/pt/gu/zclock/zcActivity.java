@@ -13,6 +13,7 @@ import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -50,6 +51,11 @@ public class zcActivity extends ActionBarActivity {
                                                     R.layout.zca_layout5};
     private SharedPreferences   mPrefs;
 
+    private hString             mString;
+    private Gematria            mGematria;
+    private boolean             matrixTranspose = false;
+    private Gematria.Matrix     gMatrix;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,7 +84,7 @@ public class zcActivity extends ActionBarActivity {
 
         // If this activity was started with an intent without an app widget ID, finish with an error.
         if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
-            if (debug) Log.e(TAG, "onResume: invalid AppWidgetId");
+            if (debug) Log.d(TAG, "onResume: invalid AppWidgetId");
             finish();
         }
 
@@ -86,7 +92,9 @@ public class zcActivity extends ActionBarActivity {
         setContentView(layouts[mode]);
 
         if (mode == 5) {
-            setContentView(R.layout.zca_layout5);
+            mString = new hString(mPrefs.getString("currentPasuk", "(no string)"));
+            mString.removeBreakSymbs();
+            mGematria = new Gematria(mString);
             drawGematria();
         }
     }
@@ -104,52 +112,99 @@ public class zcActivity extends ActionBarActivity {
     }
 
     private void drawGematria() {
-        stm = Typeface.createFromAsset(getAssets(), "fonts/stmvelish.ttf");
-        hString text = new hString(mPrefs.getString("currentPasuk", "(no string)"));
-        text.removeBreakSymbs();
-        Gematria gematria = new Gematria(text);
+
+        //hString text = new hString(mPrefs.getString("currentPasuk", "(no string)"));
+        //text.removeBreakSymbs();
+        //Gematria gematria = new Gematria(text);
         LinearLayout llPasuk = (LinearLayout)findViewById(R.id.ll_pasuk);
         llPasuk.removeAllViews();
 
-        addTextView(R.id.ll_pasuk,R.layout.zcah_pasuk,stm, text.format(hString.hFormat.Nequdot));
+        addTextView(R.id.ll_pasuk, R.layout.zcah_pasuk, stm, mString.format(hString.hFormat.Nequdot));
 
-        //setClicableText(text.format(hString.hFormat.Nequdot), R.id.textTorah);
 
-        addTextView(R.id.LayoutGemInfo, R.layout.zca_tvgeminfo, "Milim", gematria.getMilim().length);
-        addTextView(R.id.LayoutGemInfo, R.layout.zca_tvgeminfo, "Otiot", gematria.getOtiotseq().length());
-        addTextView(R.id.LayoutGemInfo, R.layout.zca_tvgeminfo, "Gemat", gematria.getGematria(Mispar.MisparHechrachi));
-        addTextView(R.id.LayoutGemInfo, R.layout.zca_tvgeminfo, "Tagin", gematria.getGematria(Mispar.MisparTagin));
+        addTextView(R.id.LayoutGemInfo, R.layout.zca_tvgeminfo, "Milim", mGematria.getMilim().length);
+        addTextView(R.id.LayoutGemInfo, R.layout.zca_tvgeminfo, "Otiot", mGematria.getOtiotseq().length());
+        addTextView(R.id.LayoutGemInfo, R.layout.zca_tvgeminfo, "Gemat", mGematria.getGematria(Mispar.MisparHechrachi));
+        addTextView(R.id.LayoutGemInfo, R.layout.zca_tvgeminfo, "Tagin", mGematria.getGematria(Mispar.MisparTagin));
 
-        TableLayout tb = (TableLayout)findViewById(R.id.tbTorah);
-        tb.removeAllViews();
-        int n =gematria.getOtiotseq().length();
-        if (n>0 && n<101){
-            String[] m = getResources().getStringArray(R.array.tMatrix)[n-1].split(",");
-            int rows = Integer.valueOf(m[1]);
-            int cols = Integer.valueOf(m[0]);
-            if (cols>1&&rows<18){
-                String[][] matrix = gematria.getMatrix(rows,cols);
-                if (matrix!=null) {
-                    drawGematriaMatrix(rows,cols,matrix);
-                }
-            }
-        }
-
+        matrixTranspose = false;
+        setMatrix();
 
     }
 
     private void updateWordInfo(String word) {
-        Gematria gematria = new Gematria(word);
+        Gematria gem = new Gematria(word);
         LinearLayout layout = (LinearLayout)findViewById(R.id.LayoutWordInfo);
         layout.removeAllViews();
         addTextView(R.id.LayoutWordInfo, R.layout.zca_tvgeminfo, word);
-        addTextView(R.id.LayoutWordInfo, R.layout.zca_tvgeminfo, getString(R.string.mispar_hechrachi), gematria.getGematria(Mispar.MisparHechrachi));
-        addTextView(R.id.LayoutWordInfo,R.layout.zca_tvgeminfo,"ATBaSh "+gematria.getChilufi(Chilufi.Atbash));
-        addTextView(R.id.LayoutWordInfo,R.layout.zca_tvgeminfo,"ATBaCh "+gematria.getChilufi(Chilufi.Atbach));
-        addTextView(R.id.LayoutWordInfo,R.layout.zca_tvgeminfo,"ALBaM "+gematria.getChilufi(Chilufi.Albam));
-        addTextView(R.id.LayoutWordInfo,R.layout.zca_tvgeminfo,"AChBi "+gematria.getChilufi(Chilufi.Achbi));
-        addTextView(R.id.LayoutWordInfo, R.layout.zca_tvgeminfo, "AchasBeta " + gematria.getChilufi(Chilufi.AchasBeta));
-        addTextView(R.id.LayoutWordInfo, R.layout.zca_tvgeminfo, "AyiqBeker " + gematria.getChilufi(Chilufi.AyiqBekher));
+        addTextView(R.id.LayoutWordInfo, R.layout.zca_tvgeminfo, getString(R.string.mispar_hechrachi), gem.getGematria(Mispar.MisparHechrachi));
+        addTextView(R.id.LayoutWordInfo,R.layout.zca_tvgeminfo,"ATBaSh "+gem.getChilufi(Chilufi.Atbash));
+        addTextView(R.id.LayoutWordInfo,R.layout.zca_tvgeminfo,"ATBaCh "+gem.getChilufi(Chilufi.Atbach));
+        addTextView(R.id.LayoutWordInfo,R.layout.zca_tvgeminfo,"ALBaM "+gem.getChilufi(Chilufi.Albam));
+        addTextView(R.id.LayoutWordInfo,R.layout.zca_tvgeminfo,"AChBi "+gem.getChilufi(Chilufi.Achbi));
+        addTextView(R.id.LayoutWordInfo, R.layout.zca_tvgeminfo, "AchasBeta " + gem.getChilufi(Chilufi.AchasBeta));
+        addTextView(R.id.LayoutWordInfo, R.layout.zca_tvgeminfo, "AyiqBeker " + gem.getChilufi(Chilufi.AyiqBekher));
+    }
+
+    private void setMatrix(){
+        int n =mGematria.getOtiotseq().length();
+        if (n>3 && n<101){
+            String[] m = getResources().getStringArray(R.array.tMatrix)[n-1].split(",");
+            gMatrix = new Gematria.Matrix(mGematria.getOtiotseq(),Integer.valueOf(m[1]),Integer.valueOf(m[0]),matrixTranspose);
+            if (gMatrix.minDim()<2 || gMatrix.maxDim()>22) return;
+            if (debug) Log.d(TAG,String.format("/setMatrix %dx%d",gMatrix.rows,gMatrix.cols));
+            TableLayout tb = (TableLayout)findViewById(R.id.tbTorah);
+            tb.removeAllViews();
+            TableRow.LayoutParams rowParms = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,1f);
+            rowParms.gravity= Gravity.CENTER;
+            for (int i =0;i<gMatrix.rows;i++){
+                TableRow tr = new TableRow(this);
+                tr.setLayoutParams(rowParms);
+                for (int j = gMatrix.cols-1; j >-1; j--){
+
+                    TextView textView = (TextView) View.inflate(this, R.layout.zcact_matrix, null);
+                    textView.setTypeface(stm);
+                    textView.setText(gMatrix.get(i,j));
+                    tr.addView(textView);
+                }
+                tb.addView(tr);
+            }
+        }
+    }
+
+    public void tbGematriaClick(View view) {
+        matrixTranspose = !matrixTranspose;
+        setMatrix();
+    }
+
+    @Override
+    public void onBackPressed(){
+        finish();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_zc, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            Intent settings = new Intent(getApplicationContext(), zcPreferences.class).setAction(zcPreferences.ACTION_PREFS);
+            settings.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+            startActivity(settings);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     private void addTextView(int layoutId, int layoutRes, String cap, int val) {
@@ -186,55 +241,6 @@ public class zcActivity extends ActionBarActivity {
             }
         }
         info.addView(tv);
-    }
-
-    private void drawGematriaMatrix(int rows,int cols, String[][] matrix){
-        stm = Typeface.createFromAsset(getAssets(), "fonts/stmvelish.ttf");
-        TableLayout tSq = (TableLayout)findViewById(R.id.tbTorah);
-        tSq.removeAllViews();
-        TableRow.LayoutParams rowParms = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT);
-        for (int i =0;i<rows;i++){
-            TableRow tr = new TableRow(this);
-            tr.setLayoutParams(rowParms);
-            for (int j = cols-1; j >-1; j--){
-
-                TextView textView = (TextView) View.inflate(this, R.layout.zcact_matrix, null);
-                textView.setTypeface(stm);
-                textView.setText(matrix[i][j]);
-                tr.addView(textView);
-            }
-            tSq.addView(tr);
-        }
-    }
-
-    @Override
-    public void onBackPressed(){
-        finish();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_zc, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            Intent settings = new Intent(getApplicationContext(), zcPreferences.class).setAction(zcPreferences.ACTION_PREFS);
-            settings.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-            startActivity(settings);
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     private void setClicableText(String clicableText,int ResId) {

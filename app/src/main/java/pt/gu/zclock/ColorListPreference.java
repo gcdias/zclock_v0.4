@@ -89,7 +89,7 @@ public class ColorListPreference extends ListPreference {
                         new BitmapDrawable(
                                 mResources, getBitmapColorIcon(i)));
             } catch (Exception ignore){
-                Log.e("ColorListPreference",ignore.toString());
+                Log.d("ColorListPreference",ignore.toString());
             }
             mDrawable[i] = d;
         }
@@ -157,7 +157,7 @@ public class ColorListPreference extends ListPreference {
         Paint pstroke = new Paint(Paint.ANTI_ALIAS_FLAG);
         pstroke.setStyle(Paint.Style.STROKE);
         pstroke.setColor(Color.BLACK);
-        pstroke.setStrokeWidth(1.5f);
+        pstroke.setStrokeWidth(2f);
         RectF r = new RectF(w * (1 - fillRatio), w * (1 - fillRatio), w * fillRatio, w * fillRatio);
 
         if (mSVPattern != null) {
@@ -173,7 +173,7 @@ public class ColorListPreference extends ListPreference {
             String s = "";
             for (int i = 0; i < len; i++) {
                 if (!s.equals("")) s += ",";
-                Log.e("colorPref","Color:"+pattern[i]);
+                Log.d("colorPref","Color:"+pattern[i]);
                 color = Color.parseColor(pattern[i]);
                 Color.colorToHSV(color, hsv_patcolor);
                 newcolor = Color.HSVToColor(Color.alpha(color), new float[]{hsv_basecolor[0], hsv_patcolor[1], hsv_patcolor[2]});
@@ -252,7 +252,7 @@ public class ColorListPreference extends ListPreference {
                 String header = mEntries[entryIndex].toString() + " ";
                 int start = header.length();
                 String[] scolors = mArrayValues[entryIndex].toString().split(",");
-                Log.e("scolors", String.format("%d", scolors.length));
+                Log.d("scolors", String.format("%d", scolors.length));
                 char[] chars = new char[scolors.length];
                 Arrays.fill(chars, '\u25a0');
                 header += new String(chars);

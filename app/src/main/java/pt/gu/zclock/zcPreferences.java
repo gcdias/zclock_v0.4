@@ -62,7 +62,7 @@ public class zcPreferences extends Activity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (debug) Log.e(TAG,"onCreate");
+        if (debug) Log.d(TAG,"onCreate");
 
         //getWindow().setFlags(WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER, WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND,
@@ -84,7 +84,7 @@ public class zcPreferences extends Activity
     @Override
     public void onStart(){
         super.onStart();
-        if (debug) Log.e(TAG,"onStart");
+        if (debug) Log.d(TAG,"onStart");
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
     }
 
@@ -92,7 +92,7 @@ public class zcPreferences extends Activity
     public void onResume(){
         super.onResume();
         
-        if (debug) Log.e(TAG,"onResume: appWidgetId:"+mAppWidgetId);
+        if (debug) Log.d(TAG,"onResume: appWidgetId:"+mAppWidgetId);
 
         setResult(RESULT_CANCELED);
         // Find the widget id from the intent.
@@ -105,7 +105,7 @@ public class zcPreferences extends Activity
 
         // If this activity was started with an intent without an app widget ID, finish with an error.
         if (mAppWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
-            if (debug) Log.e(TAG,"onResume: invalid AppWidgetId");
+            if (debug) Log.d(TAG,"onResume: invalid AppWidgetId");
             //finish();
         }
 
@@ -119,7 +119,7 @@ public class zcPreferences extends Activity
     @Override
     public void onPause(){
         // Unregister the listener whenever a key changes
-        if (debug) Log.e(TAG,"onPause");
+        if (debug) Log.d(TAG,"onPause");
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
         super.onPause();
     }
@@ -127,7 +127,7 @@ public class zcPreferences extends Activity
     @Override
     public void onStop() {
         // Unregister the listener whenever a key changes
-        if (debug) Log.e(TAG,"onStop");
+        if (debug) Log.d(TAG,"onStop");
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
         super.onStop();
     }
@@ -141,7 +141,7 @@ public class zcPreferences extends Activity
 
     @Override
     public void onBackPressed(){
-        if (debug) Log.e(TAG,"onBackPressed: id"+mAppWidgetId);
+        if (debug) Log.d(TAG,"onBackPressed: id"+mAppWidgetId);
         Context context = getApplicationContext();
         saveWidgetPreferences(this, mAppWidgetId);
 
@@ -160,7 +160,7 @@ public class zcPreferences extends Activity
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 
-        if (debug) Log.e(TAG,"onSharedPreferenceChanged "+key);
+        if (debug) Log.d(TAG,"onSharedPreferenceChanged "+key);
         setSummary(key, null);
 
     }
@@ -223,7 +223,7 @@ public class zcPreferences extends Activity
     }
 
     private void loadPreference(prefType type, String key, int appWidgetId){
-        if (debug) Log.e(TAG,"loadPreference "+key);
+        if (debug) Log.d(TAG,"loadPreference "+key);
         SharedPreferences.Editor ed =sharedPreferences.edit();
         Object value=null;
         int ResId = (type==SIZE) ? 0 : mContext.getResources().getIdentifier(key,type.id,mContext.getPackageName());
@@ -258,7 +258,7 @@ public class zcPreferences extends Activity
     }
 
     private void setSummary(String key,Object value){
-        if (debug) Log.e(TAG,"setSummary "+key);
+        if (debug) Log.d(TAG,"setSummary "+key);
         Preference preference = mPrefsFragment.findPreference(key);
         if (preference!=null) {
             if (preference instanceof ListPreference) {
@@ -376,7 +376,7 @@ public class zcPreferences extends Activity
     }
 
     private void saveColorTheme(String colorTheme, int appWidgetId) {
-        Log.e(TAG,"saveColorTheme "+colorTheme);
+        Log.d(TAG,"saveColorTheme "+colorTheme);
         String[] c_array = colorTheme.split(",");
         if (c_array.length>7) {
             SharedPreferences.Editor ed = sharedPreferences.edit();
@@ -394,78 +394,4 @@ public class zcPreferences extends Activity
         }
     }
 
-
-    //region deprecated code
-    /*
-    //private final int PREF_INT = 0, PREF_FLOAT = 1, PREF_STRING = 2, PREF_BOOLEAN = 3, PREF_COLOR = 4, PREF_SIZE = 5;
-    //private final String[] resType = {"integer", "dimen", "string", "bool", "color", "integer", "dimens"};
-        private void loadPref(Context context,int type, String key, int appWidgetId){
-        //if (debug) Log.e(TAG"loadPref",key);
-        SharedPreferences.Editor ed =sharedPreferences.edit();
-        Object value=null;
-        int ResId = (type==PREF_SIZE) ? 0 : context.getResources().getIdentifier(key,resType[type],context.getPackageName());
-        switch (type){
-            case PREF_INT:
-                value = sharedPreferences.getInt(key + appWidgetId, context.getResources().getInteger(ResId));
-                ed.putString(key,String.valueOf((int)value));
-                break;
-            case PREF_SIZE:
-                value = sharedPreferences.getInt(key + appWidgetId,100);
-                ed.putString(key,String.valueOf((int)value));
-                break;
-            case PREF_FLOAT:
-                value =sharedPreferences.getFloat(key + appWidgetId, context.getResources().getDimension(ResId));
-                ed.putString(key,String.valueOf((float)value));
-                break;
-            case PREF_STRING:
-                value=sharedPreferences.getString(key + appWidgetId, context.getResources().getString(ResId));
-                ed.putString(key,String.valueOf(value));
-                break;
-            case PREF_BOOLEAN:
-                value =sharedPreferences.getBoolean(key + appWidgetId, context.getResources().getBoolean(ResId));
-                ed.putBoolean(key, (boolean) value);
-                break;
-            case PREF_COLOR:
-                value=sharedPreferences.getInt(key + appWidgetId, context.getResources().getColor(ResId));
-                ed.putInt(key, (int)value);
-                break;
-        }
-        ed.commit();
-        setSummary(key,value);
-    }
-
-    private void savePref(Context context,int type,String key, int appWidgetId){
-        SharedPreferences.Editor ed =sharedPreferences.edit();
-        int ResId = (type==PREF_SIZE) ? 0 : context.getResources().getIdentifier(key,resType[type],context.getPackageName());
-        switch (type){
-            case PREF_INT:
-                ed.putInt(key+appWidgetId,Integer.valueOf(
-                        sharedPreferences.getString(key,String.valueOf(context.getResources().getInteger(ResId)))));
-                break;
-            case PREF_SIZE:
-                ed.putInt(key+appWidgetId,Integer.valueOf(
-                        sharedPreferences.getString(key,"100")));
-                break;
-            case PREF_FLOAT:
-                ed.putFloat(key+appWidgetId,Float.valueOf(
-                        sharedPreferences.getString(key,String.valueOf(context.getResources().getDimension(ResId)))));
-                break;
-            case PREF_STRING:
-                ed.putString(key+appWidgetId,
-                        sharedPreferences.getString(key,context.getResources().getString(ResId)));
-                break;
-            case PREF_BOOLEAN:
-                ed.putBoolean(key+mAppWidgetId,
-                        sharedPreferences.getBoolean(key,context.getResources().getBoolean(ResId)));
-                break;
-            case PREF_COLOR:
-                ed.putInt(key+appWidgetId,
-                        sharedPreferences.getInt(key,context.getResources().getColor(ResId)));
-                break;
-            default: break;
-        }
-        ed.commit();
-    }
-    */
-    //endregion
 }

@@ -88,15 +88,15 @@ public class zcWeather{
         long dt_end     = startTimeMilis+86400000;
 
         if (weatherData.isEmpty()){
-            if (debug) Log.e(TAG,"weatherData is Empty");
+            if (debug) Log.d(TAG,"weatherData is Empty");
             return null;
         }
-        if (debug) Log.e(TAG,"weatherData is " + weatherData.size());
+        if (debug) Log.d(TAG,"weatherData is " + weatherData.size());
 
 
         WeatherData[] tArray = new WeatherData[weatherData.size()];
         int i = 0;
-        if (debug) Log.e(TAG,"dt_st is " + startTimeMilis+ "dt_end is" + dt_end);
+        if (debug) Log.d(TAG,"dt_st is " + startTimeMilis+ "dt_end is" + dt_end);
 
         for (int j=0; j<weatherData.size();j++){
             WeatherData data= weatherData.get(j);
@@ -104,14 +104,14 @@ public class zcWeather{
                 if (i==0 && j>0) {
                     tArray[0] = weatherData.get(j-1);
                     tArray[i++].setTime(System.currentTimeMillis());
-                    if (debug) Log.e(TAG,"Now:" + startTimeMilis + "from " + weatherData.get(j-1).getTime());
+                    if (debug) Log.d(TAG,"Now:" + startTimeMilis + "from " + weatherData.get(j-1).getTime());
                 }
                 tArray[i++]=data;
             }
-            if (debug) Log.e(TAG,"Dt is " + data.getTime());
+            if (debug) Log.d(TAG,"Dt is " + data.getTime());
         }
 
-        if (debug) Log.e(TAG,String.format("wData: %d values",i));
+        if (debug) Log.d(TAG,String.format("wData: %d values",i));
         WeatherData[] res =Arrays.copyOf(tArray,i);
         return res;
     }
@@ -122,7 +122,7 @@ public class zcWeather{
         @Override
         protected Void doInBackground(String... params) {
             String url = String.format(Locale.US,"%slat=%.1f&lon=%.1f",FORECAST_URL,latitude,longitude);
-            if (debug) Log.e("ForecastTask",url);
+            if (debug) Log.d("ForecastTask",url);
             String data = getWeatherData(url);
 
             try {
@@ -134,17 +134,17 @@ public class zcWeather{
                     ed.apply();
                     mContext.sendBroadcast(new Intent(zcService.ZC_FORECASTUPDATE));
                     updated = true;
-                    if (debug) Log.e(TAG, "Success, intent sent");
+                    if (debug) Log.d(TAG, "Success, intent sent");
                 }
                 else
                 {
-                    if (debug) Log.e(TAG, "Null data received");
+                    if (debug) Log.d(TAG, "Null data received");
                     updated = false;
                 }
 
             } catch (JSONException e) {
                 updated = false;
-                if (debug) Log.e(TAG,"Task failed" + e.toString());
+                if (debug) Log.d(TAG,"Task failed" + e.toString());
             }
             return null;
         }
@@ -195,9 +195,9 @@ public class zcWeather{
 
         // We create out JSONObject from the data
         JSONObject jData = new JSONObject(data);
-        if (debug) Log.e("JSON Data", jData.toString());
+        if (debug) Log.d("JSON Data", jData.toString());
         JSONArray jList = jData.getJSONArray("list");
-        if (debug) Log.e("JSON List", jList.toString());
+        if (debug) Log.d("JSON List", jList.toString());
 
         /*
         for (int i = 0; i < jList.length(); i++) {

@@ -1,9 +1,14 @@
 package pt.gu.zclock;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class kblh {
+
+    private static final String TAG="kbl";
+    private static final boolean debug = true;
 	    
 	public enum Ot {
 		Alef(1),
@@ -196,11 +201,11 @@ public class kblh {
         Milui63         (new int[] { 111, 412, 83, 434, 15, 13, 67, 418, 419, 20, 100, 100, 74, 80, 80, 106, 106, 120, 130, 81, 81, 104, 104, 186, 510, 360, 406 }),          //3
         Milui45         (new int[] { 111, 412, 83, 434, 6, 13, 67, 418, 419, 20, 100, 100, 74, 80, 80, 106, 106, 120, 130, 81, 81, 104, 104, 186, 510, 360, 406 }),          //4
         Milui52         (new int[] { 111, 412, 83, 434, 10, 12, 67, 418, 419, 20, 100, 100, 74, 80, 80, 106, 106, 120, 130, 81, 81, 104, 104, 186, 510, 360, 406 }),          //5
-        MisparSiduri    (new int[]{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 20, 30, 40, 40, 50, 50, 60, 70, 80, 80, 90, 90, 100, 200, 300, 400 }),     //6-Contagem ordinal 1>22
-        MisparQatan     (new int[]{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 20, 30, 40, 40, 50, 50, 60, 70, 80, 80, 90, 90, 100, 200, 300, 400 }),      //7-sem zeros iod=1, kaf=2,...
-        MisparQidmi     (new int[]{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 20, 30, 40, 40, 50, 50, 60, 70, 80, 80, 90, 90, 100, 200, 300, 400 }),      //8-Standard triangular 1,3,6...(n^2+n)/2
-        MisparPerati    (new int[]{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 20, 30, 40, 40, 50, 50, 60, 70, 80, 80, 90, 90, 100, 200, 300, 400 }),     //9-Standard quadratico 1,4,9...n^2
-        MisparNeelam    (new int[]{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 20, 30, 40, 40, 50, 50, 60, 70, 80, 80, 90, 90, 100, 200, 300, 400 }),      //10
+        //MisparSiduri    (new int[]{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 20, 30, 40, 40, 50, 50, 60, 70, 80, 80, 90, 90, 100, 200, 300, 400 }),     //6-Contagem ordinal 1>22
+        //MisparQatan     (new int[]{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 20, 30, 40, 40, 50, 50, 60, 70, 80, 80, 90, 90, 100, 200, 300, 400 }),      //7-sem zeros iod=1, kaf=2,...
+        //MisparQidmi     (new int[]{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 20, 30, 40, 40, 50, 50, 60, 70, 80, 80, 90, 90, 100, 200, 300, 400 }),      //8-Standard triangular 1,3,6...(n^2+n)/2
+        //MisparPerati    (new int[]{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 20, 30, 40, 40, 50, 50, 60, 70, 80, 80, 90, 90, 100, 200, 300, 400 }),     //9-Standard quadratico 1,4,9...n^2
+        //MisparNeelam    (new int[]{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 20, 30, 40, 40, 50, 50, 60, 70, 80, 80, 90, 90, 100, 200, 300, 400 }),      //10
         MisparTagin     (new int[]{ 0, 1, 3, 1, 1, 0, 3, 1, 3, 1, 0, 0, 0, 0, 0, 3, 3, 0, 3, 0, 0, 3, 3, 1, 0, 3, 0 });      //10
 	    //QatanMispari(4),
 
@@ -412,7 +417,46 @@ public class kblh {
             return res;
         }
 
-        public String[][] getMatrix(int rows, int columns){
+        public static class Matrix{
+
+            int rows;
+            int cols;
+            boolean transpose;
+            char[] array;
+
+            Matrix(String seq,int Rows, int Cols, boolean transpose){
+                this.array = seq.toCharArray();
+                this.rows=Rows;
+                this.cols=Cols;
+                this.transpose = transpose;
+            }
+
+            public String get(int row, int col){
+                String res ="";
+                int pos =transpose?(rows*col+row):(cols*row+col);
+                try{
+                    res = String.valueOf(array[pos]);
+                }
+                catch (Exception e){
+                    if (debug) Log.e(TAG,"//Matrix:"+e);
+                }
+                return res;
+            }
+
+            public void transpose(){
+                this.transpose = !this.transpose;
+            }
+
+            public int minDim() {
+                return Math.min(cols,rows);
+            }
+
+            public int maxDim() {
+                return Math.max(cols,rows);
+            }
+        }
+
+        /*public String[][] getMatrix(int rows, int columns){
             if (rows*columns!=otiotseq.length()) return null;
             String[][] result = new String[rows][columns];
             char[] chars = otiotseq.toCharArray();
@@ -422,7 +466,7 @@ public class kblh {
                 }
             }
             return result;
-        }
+        }*/
 
         private int[] factorize(int number){
 

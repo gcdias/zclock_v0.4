@@ -11,6 +11,18 @@
 	<color name="cParshat">#80ffffff</color>
 	<color name="cShemot">#07ffffff</color>
 
+    <string-array name="themeUser">
+        <item>Zmanim Clock</item>
+        <item>Light Monotone</item>
+        <item>Dark Monotone</item>
+    </string-array>
+
+    <string-array name="themeUserColor">
+        <item>#A000C3FF,#2000C3FF,#a020c3ff,#800090c0,#FFFFFFFF,#80FFFFFF,#C3FFFFFF,#48FFFFFF</item>
+        <item>#A0FFFFFF,#48FFFFFF,#A0FFFFFF,#80FFFFFF,#FFFFFFFF,#80FFFFFF,#C3FFFFFF,#48FFFFFF</item>
+        <item>#A0000000,#48000000,#A0000000,#80000000,#FF000000,#80000000,#C3000000,#48000000</item>
+    </string-array>
+
     <string-array name="themeName">
         <item>Zmanim Clock</item>
         <item>Lime</item>

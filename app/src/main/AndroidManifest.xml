@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.BROADCAST_STICKY" />
 
+    <uses-feature android:name="android.software.live_wallpaper" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/g3970"
@@ -26,6 +28,17 @@
         <service
             android:name=".zcService"
             android:exported="false" />
+
+        <service
+            android:name=".zcWallpaper"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_WALLPAPER" >
+            <intent-filter>
+                <action android:name="android.service.wallpaper.WallpaperService" />
+            </intent-filter>
+            <meta-data android:name="android.service.wallpaper"
+                android:resource="@xml/livewallpaper" />
+        </service>
 
         <activity
             android:name=".zcPreferences"

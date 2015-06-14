@@ -45,4 +45,5 @@
 	<bool name="show72Hashem">true</bool>
 	<bool name="showWeather">true</bool>
 	<bool name="bClockElapsedTime">true</bool>
+	<bool name="wpOverlay">true</bool>
 </resources>

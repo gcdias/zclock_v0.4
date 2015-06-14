@@ -54,7 +54,7 @@ public class zClock {
                             szTimeMins = 10f,
                             resTimeMins = 2f,
                             szPtrHeight = 50f,
-                            szWeatherPad =12f;
+                            szWeatherPad =2f;
 
     private PathEffect      patFrame;
 
@@ -205,7 +205,8 @@ public class zClock {
             if (weatherForecast.length!=0) {
                 p.setStyle(Paint.Style.STROKE);
                 p.setStrokeWidth(getDimensPref("szWeatherFrame", appWidgetId));
-                float r2 = raio - szFrame - 2 * szTimeLabPad - textMarksMaxWidth[1] - szWeatherPad;
+                //float r2 = raio - szFrame/2 - (getBoolPref("iTimemarks",appWidgetId) ? 2 * szTimeLabPad:0) - textMarksMaxWidth[1] - szWeatherPad;
+                float r2 = raio - szFrame/2-szWeatherPad;
                 canvas.save();
                 canvas.rotate(getTimeAngle(this.startForecastTime - timeDST) + angle_offset, canvas.getWidth() / 2, canvas.getHeight() / 2);
                 p.setShader(getForecastShader());
@@ -377,12 +378,13 @@ public class zClock {
 
 
 
+
     private float getTimeAngle(long timeMilis){
         return timeMilis / 60000f % 1440 / 4 %360;
     }
 
     public void updateTimeMarks() {
-        raio = (int) (Math.min(pxClock.x / 2, pxClock.y / 2) - textMarksMaxWidth[0] - szFrame - szTimeLabPad);
+        raio = (int) (Math.min(pxClock.x / 2, pxClock.y / 2) - textMarksMaxWidth[0] - szFrame/2 - szTimeLabPad);
         this.patFrame = renderDashPathEffect(this.raio);
         timeMarkPaths();
     }
@@ -409,12 +411,13 @@ public class zClock {
 
     private void timeMarkPaths() {
 
-        float r1a = szFrame + szTimeLabPad, r1, r2;
+        //float r1a = szFrame + szTimeLabPad, r1, r2;
+        float r1a = szFrame/2 + szTimeLabPad, r1, r2;
         final double Pi2Deg = Math.PI / 180;
         double angle, cos, sin;
         for (timeLabel z : timeMarks) {
             if (z.insideFrame) {
-                r2 = raio - r1a;
+                r2 = raio - r1a-szWeatherPad;
                 r1 = r2 - textMarksMaxWidth[1];
             } else {
                 r1 = raio + r1a;

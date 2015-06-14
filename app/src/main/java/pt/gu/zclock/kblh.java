@@ -425,6 +425,11 @@ public class kblh {
             char[] array;
 
             Matrix(String seq,int Rows, int Cols, boolean transpose){
+                seq= seq.replace("\u05da","\u05db")     //caf sofit
+                        .replace("\u05dd","\u05de")     //mem sofit
+                        .replace("\u05df","\u05e0")     //nun sofit
+                        .replace("\u05e3","\u05e4")     //pe sofit
+                        .replace("\u05e5","\u05e6");    //tsadek sofit
                 this.array = seq.toCharArray();
                 this.rows=Rows;
                 this.cols=Cols;

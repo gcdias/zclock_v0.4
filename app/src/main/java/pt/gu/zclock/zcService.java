@@ -2,7 +2,6 @@ package pt.gu.zclock;
 
 import android.app.PendingIntent;
 import android.app.Service;
-import android.app.WallpaperManager;
 import android.appwidget.AppWidgetManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -134,7 +133,6 @@ public class zcService extends Service{
                 if (debug) Log.d(TAG + ".onReceive", "Screen ON: updating");
                 pmScreenOn = true;
                 updateWidgets(context, manager, manager.getAppWidgetIds(widgets));
-                updateWallpaper();
             }
 
             if (pmScreenOn) {
@@ -164,6 +162,7 @@ public class zcService extends Service{
                 if (debug) Log.d(TAG + "onReceive", "Forecast Update");
                 weatherForecast = mWeather.get24hForecast(System.currentTimeMillis());
                 mClock.setForecastData(weatherForecast);
+                saveCurrentWeather();
             }
         }
     };
@@ -176,8 +175,6 @@ public class zcService extends Service{
         if (debug) Log.d(TAG, "onCreate");
 
         this.mContext          = getApplicationContext();
-
-        this.mWallpaper        = WallpaperManager.getInstance(mContext).getDrawable();
         this.mPrefs            = PreferenceManager.getDefaultSharedPreferences(mContext);
         this.mLocation         = new zcLocation(mContext);
         this.zCalendar         = new ComplexZmanimCalendar(mLocation.geoLocation());
@@ -198,9 +195,7 @@ public class zcService extends Service{
         super.onStartCommand(intent, flags, startId);
 
         if (debug) Log.d(TAG, String.format("onStartCommand: %s,%d,%d", intent.getAction(),flags,startId));
-
         registerReceiver(intentReceiver, intentFilter);
-
         return START_STICKY;
     }
 
@@ -219,11 +214,15 @@ public class zcService extends Service{
         }
     }
 
-    private void updateZmanin(int appWidgetId){
+    private void saveCurrentWeather() {
+        SharedPreferences.Editor ed = mPrefs.edit();
+        ed.putString("currWeather",weatherForecast[0].toJSONString());
+        ed.apply();
+    }
 
+    private void updateZmanin(int appWidgetId){
         mPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         long newday = getNewDayTime(appWidgetId), now = System.currentTimeMillis();
-
 
         if (now- mPrefs.getLong("lastZmanimUpdate",0) > zmanimUpdateTimeout) {
 
@@ -232,6 +231,12 @@ public class zcService extends Service{
             zCalendar = new ComplexZmanimCalendar(mLocation.geoLocation());
             SharedPreferences.Editor ed = mPrefs.edit();
             ed.putLong("lastZmanimUpdate",newday);
+            ed.putLong("sunrisetime",zCalendar.getSunrise().getTime());
+            ed.putLong("sunsettime",zCalendar.getSunset().getTime());
+            ed.putLong("tzait72",zCalendar.getTzais72().getTime());
+            ed.putLong("alot72",zCalendar.getAlos72().getTime());
+            ed.putLong("midday",zCalendar.getChatzos().getTime());
+            ed.putLong("midnight",zCalendar.getSolarMidnight().getTime());
             ed.apply();
             resetClock(appWidgetId);
         }
@@ -279,29 +284,6 @@ public class zcService extends Service{
         }
     }
 
-    private void updateWallpaper(){
-        /*
-        Bitmap b = PrefsFragment.drawableToBitmap(mWallpaper).copy(Bitmap.Config.ARGB_8888,true);
-        Canvas c = new Canvas(b);
-        int color = 0x80FFFFFF;
-        if (weatherForecast!= null) color = weatherForecast[0].getColorCondition(0.6f);
-        color = zcHelper.xColor.setAlpha(80,color);
-        float time = zcHelper.timeEvents.timeToRadAngle(Calendar.getInstance().getTime().getTime());
-        float sunrise = zcHelper.timeEvents.timeToRadAngle(zCalendar.getSunrise().getTime());
-        float sunset = zcHelper.timeEvents.timeToRadAngle(zCalendar.getSunset().getTime());
-        zcHelper.RangeF r = new zcHelper.RangeF(1,-1);
-        float y = r.get((float)(Math.acos(sunset)-Math.cos(time-sunrise+sunset)));
-        float lum = r.scale(y,new zcHelper.RangeF(1,0));
-
-        color = zcHelper.xColor.setLum(lum,color);
-        c.drawColor(color);
-        try {
-            WallpaperManager.getInstance(mContext).setBitmap(b);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        */
-    }
     public void resetClock(int appWidgetId) {
 
         mPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
@@ -416,7 +398,7 @@ public class zcService extends Service{
                 d.setMinutes(0);
                 timeHours[i] = d;
             }
-            mClock.addMarks(tfCondN,
+            mClock.addMarks(tfRegularB,
                     cHours,
                     getDimensPref("szTimemarks", appWidgetId),
                     getStringPref("tsTimemarks", appWidgetId),
@@ -559,7 +541,7 @@ public class zcService extends Service{
         int d = jCalendar.getDayOfWeek() - 1;
         //int dm = (int) ((zCalendar.getSunset().getTime() - zCalendar.getSunrise().getTime()) / 60000);
         int m = (int) (System.currentTimeMillis() / 60000) % 1440;
-        String pasuk, ref;
+        String pasuk="", ref="", sefer="";
         try {
             int i = getParshaHashavuaIndex();
             if (debug) Log.d("Parsha index",String.valueOf(i));
@@ -593,6 +575,7 @@ public class zcService extends Service{
             index = 1 + v + (m * yom[d] / 1440);
             if (debug) Log.d("Parashat", String.format("parsha %d day %d line %d/%d", i, d + 1, v, index));
             pasuk = parsha[index];
+            sefer = parsha[0];
             int iref = pasuk.indexOf(" ");
             ref = (iref > 0) ? pasuk.substring(0, iref) : "error";
             pasuk = (iref > 0) ? pasuk.substring(iref + 1) : String.format("ERRO %d/%d", index, l);
@@ -604,6 +587,7 @@ public class zcService extends Service{
         SharedPreferences.Editor ed = mPrefs.edit();
         ed.putString("currentPasuk",pasuk);
         ed.putString("currentRef",ref);
+        ed.putString("currentSefer",sefer);
         ed.apply();
         return new String[]{ref,pasuk};
     }
@@ -648,38 +632,28 @@ public class zcService extends Service{
         }
     }
 
-    //region SharedPreferences helper Methods
-
-    private int     getIntPref( String key, int appWidgetId) {
-        int ResId = mContext.getResources().getIdentifier(key, "integer", mContext.getPackageName());
-        return PreferenceManager.getDefaultSharedPreferences(mContext).getInt(key + appWidgetId, mContext.getResources().getInteger(ResId));
+    private void updateWallpaper(){
+        /*
+        Bitmap b = PrefsFragment.drawableToBitmap(mWallpaper).copy(Bitmap.Config.ARGB_8888,true);
+        Canvas c = new Canvas(b);
+        int color = 0x80FFFFFF;
+        if (weatherForecast!= null) color = weatherForecast[0].getColorCondition(0.6f);
+        color = zcHelper.xColor.setAlpha(80,color);
+        float time = zcHelper.timeEvents.timeToRadAngle(Calendar.getInstance().getTime().getTime());
+        float sunrise = zcHelper.timeEvents.timeToRadAngle(zCalendar.getSunrise().getTime());
+        float sunset = zcHelper.timeEvents.timeToRadAngle(zCalendar.getSunset().getTime());
+        zcHelper.RangeF r = new zcHelper.RangeF(1,-1);
+        float y = r.get((float)(Math.acos(sunset)-Math.cos(time-sunrise+sunset)));
+        float lum = r.scale(y,new zcHelper.RangeF(1,0));
+        color = zcHelper.xColor.setLum(lum,color);
+        c.drawColor(color);
+        try {
+            WallpaperManager.getInstance(mContext).setBitmap(b);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        */
     }
-
-    private float   getDimensPref( String key, int appWidgetId) {
-        int ResId = mContext.getResources().getIdentifier(key, "dimen", mContext.getPackageName());
-        return PreferenceManager.getDefaultSharedPreferences(mContext).getInt(key + appWidgetId, 100) / 100f * mContext.getResources().getDimension(ResId);
-    }
-
-    private float   getSizePref( String key, int appWidgetId) {
-        int ResId = mContext.getResources().getIdentifier(key, "dimen", mContext.getPackageName());
-        return mPrefs.getFloat(key + appWidgetId, mContext.getResources().getDimension(ResId));
-    }
-
-    private String  getStringPref( String key, int appWidgetId) {
-        int ResId = mContext.getResources().getIdentifier(key, "string", mContext.getPackageName());
-        return PreferenceManager.getDefaultSharedPreferences(mContext).getString(key + appWidgetId, mContext.getResources().getString(ResId));
-    }
-
-    private boolean getBoolPref( String key, int appWidgetId) {
-        int ResId = mContext.getResources().getIdentifier(key, "bool", mContext.getPackageName());
-        return PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean(key + appWidgetId, mContext.getResources().getBoolean(ResId));
-    }
-
-    private int     getColorPref( String key, int appWidgetId) {
-        int ResId = mContext.getResources().getIdentifier(key, "color", mContext.getPackageName());
-        return PreferenceManager.getDefaultSharedPreferences(mContext).getInt(key + appWidgetId, mContext.getResources().getColor(ResId));
-    }
-    //endregion
 
     //region draw methods
     //updated to zcZmanim
@@ -687,7 +661,7 @@ public class zcService extends Service{
 
         boolean bkgDark = getBoolPref("bWhiteOnBlack", appWidgetId);
         Bitmap bitmap = Bitmap.createBitmap((int) size.x, (int) size.y, Bitmap.Config.ARGB_8888);
-        bitmap = renderBackground(bitmap, bkgDark ? 0x80000000 : 0x80ffffff, 13);
+        bitmap = renderBackground(bitmap, bkgDark ? 0x80000000 : 0x80ffffff, 13f);
         final Typeface tfStam = Typeface.createFromAsset(mContext.getAssets(), "fonts/stmvelish.ttf");
         final Typeface tfCondN = Typeface.create(mContext.getString(R.string.font_light), Typeface.BOLD);
 
@@ -697,36 +671,35 @@ public class zcService extends Service{
         currentPasuk[1] = hebString.removeBreakSymbs(currentPasuk[1]);
         currentPasuk[1] = hebString.toNiqqud(currentPasuk[1]);
 
-        float y = bitmap.getHeight() * 0.08f + 13f;
+        //float y = bitmap.getHeight() + 13f;
 
         //ref
-        renderTextBlock(bitmap,
+        renderTextBlock (bitmap,
                         tfCondN,
                         currentPasuk[0],
                         bkgDark ? 0xa0ffffff : 0xa0000000,
                         26f,
-                        y,
+                        42f,
                         0.98f);
         //pasuk
-        renderTextBlock(bitmap,
+        renderTextBlock (bitmap,
                         tfStam,
                         currentPasuk[1],
                         bkgDark ? 0xffffffff : 0xff000000,
                         50f,
-                        y,
+                        50f,
                         0.90f); //tehilim
         //Gematria: milim, otiot
         currentPasuk[1] = hebString.removeMaqaf(currentPasuk[1]);
         currentPasuk[1] = hebString.toOtiot(currentPasuk[1]);
-        int milim = hebString.getMilimNumber(currentPasuk[1]), otiot = hebString.getOtiotNumber(currentPasuk[1]);
-        renderTextBlock(bitmap,
+        int milim       = hebString.getMilimNumber(currentPasuk[1]), otiot = hebString.getOtiotNumber(currentPasuk[1]);
+        renderTextBlock (bitmap,
                         tfCondN,
                         String.format("milim %d, otiot %d",milim,otiot),
                         bkgDark ? 0xa0ffffff : 0xa0000000,
                         26f,
-                        bitmap.getHeight() - 8f,
-                        0.9f
-                        );
+                        bitmap.getHeight() -26f,
+                        0.9f);
         return bitmap;
     }
     private Bitmap renderText(PointF size,
@@ -897,6 +870,39 @@ public class zcService extends Service{
         ed.putInt("widgetCellHeight" + appWidgetId, hCells);
         ed.apply();
     }
+
+    //region SharedPreferences helper Methods
+
+    private int     getIntPref( String key, int appWidgetId) {
+        int ResId = mContext.getResources().getIdentifier(key, "integer", mContext.getPackageName());
+        return PreferenceManager.getDefaultSharedPreferences(mContext).getInt(key + appWidgetId, mContext.getResources().getInteger(ResId));
+    }
+
+    private float   getDimensPref( String key, int appWidgetId) {
+        int ResId = mContext.getResources().getIdentifier(key, "dimen", mContext.getPackageName());
+        return PreferenceManager.getDefaultSharedPreferences(mContext).getInt(key + appWidgetId, 100) / 100f * mContext.getResources().getDimension(ResId);
+    }
+
+    private float   getSizePref( String key, int appWidgetId) {
+        int ResId = mContext.getResources().getIdentifier(key, "dimen", mContext.getPackageName());
+        return mPrefs.getFloat(key + appWidgetId, mContext.getResources().getDimension(ResId));
+    }
+
+    private String  getStringPref( String key, int appWidgetId) {
+        int ResId = mContext.getResources().getIdentifier(key, "string", mContext.getPackageName());
+        return PreferenceManager.getDefaultSharedPreferences(mContext).getString(key + appWidgetId, mContext.getResources().getString(ResId));
+    }
+
+    private boolean getBoolPref( String key, int appWidgetId) {
+        int ResId = mContext.getResources().getIdentifier(key, "bool", mContext.getPackageName());
+        return PreferenceManager.getDefaultSharedPreferences(mContext).getBoolean(key + appWidgetId, mContext.getResources().getBoolean(ResId));
+    }
+
+    private int     getColorPref( String key, int appWidgetId) {
+        int ResId = mContext.getResources().getIdentifier(key, "color", mContext.getPackageName());
+        return PreferenceManager.getDefaultSharedPreferences(mContext).getInt(key + appWidgetId, mContext.getResources().getColor(ResId));
+    }
+    //endregion
 
     @Override
     public IBinder onBind(Intent intent) {

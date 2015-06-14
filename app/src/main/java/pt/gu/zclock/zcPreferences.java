@@ -162,6 +162,15 @@ public class zcPreferences extends Activity
 
         if (debug) Log.d(TAG,"onSharedPreferenceChanged "+key);
         setSummary(key, null);
+        /*
+        //Todo
+        Object o = sharedPreferences.contains(key)?sharedPreferences.getAll().get(key):null;
+        if (o!=null){
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            if (o instanceof String) editor.putString(key+mAppWidgetId,sharedPreferences.getString(key,""));
+            if (o instanceof Boolean) editor.putBoolean(key+mAppWidgetId,sharedPreferences.getString(key,"true"));
+        }
+        */
 
     }
 
@@ -206,6 +215,7 @@ public class zcPreferences extends Activity
         loadPreference(COLOR,"cDate",appWidgetId);
         loadPreference(COLOR,"cParshat",appWidgetId);
         loadPreference(COLOR,"cShemot",appWidgetId);
+        loadPreference(COLOR,"cWallpaper");
 
         //loadPreference(BOOLEAN,"bAlotTzet72",appWidgetId);
         loadPreference(BOOLEAN,"showWeather",appWidgetId);
@@ -218,6 +228,7 @@ public class zcPreferences extends Activity
         loadPreference(BOOLEAN,"bLangHebrew",appWidgetId);
         loadPreference(BOOLEAN,"bClockElapsedTime",appWidgetId);
         loadPreference(BOOLEAN,"bWhiteOnBlack",appWidgetId);
+        loadPreference(BOOLEAN,"wpOverlay",appWidgetId);
 
         loadPreference(INT,"nShemot",appWidgetId);
     }
@@ -250,6 +261,41 @@ public class zcPreferences extends Activity
                 break;
             case COLOR:
                 value=sharedPreferences.getInt(key + appWidgetId, mContext.getResources().getColor(ResId));
+                ed.putInt(key, (int)value);
+                break;
+        }
+        ed.commit();
+        setSummary(key,value);
+    }
+
+    private void loadPreference(prefType type, String key){
+        if (debug) Log.d(TAG,"loadPreference "+key);
+        SharedPreferences.Editor ed =sharedPreferences.edit();
+        Object value=null;
+        int ResId = (type==SIZE) ? 0 : mContext.getResources().getIdentifier(key,type.id,mContext.getPackageName());
+        switch (type){
+            case INT:
+                value = sharedPreferences.getInt(key, mContext.getResources().getInteger(ResId));
+                ed.putString(key,String.valueOf((int)value));
+                break;
+            case SIZE:
+                value = sharedPreferences.getInt(key,100);
+                ed.putString(key,String.valueOf((int)value));
+                break;
+            case FLOAT:
+                value =sharedPreferences.getFloat(key, mContext.getResources().getDimension(ResId));
+                ed.putString(key,String.valueOf((float)value));
+                break;
+            case STRING:
+                value=sharedPreferences.getString(key, mContext.getResources().getString(ResId));
+                ed.putString(key,String.valueOf(value));
+                break;
+            case BOOLEAN:
+                value =sharedPreferences.getBoolean(key, mContext.getResources().getBoolean(ResId));
+                ed.putBoolean(key, (boolean) value);
+                break;
+            case COLOR:
+                value=sharedPreferences.getInt(key, mContext.getResources().getColor(ResId));
                 ed.putInt(key, (int)value);
                 break;
         }
@@ -324,6 +370,7 @@ public class zcPreferences extends Activity
         savePreference(COLOR,"cDate",appWidgetId);
         savePreference(COLOR,"cParshat",appWidgetId);
         savePreference(COLOR,"cShemot",appWidgetId);
+        savePreference(COLOR,"cWallpaper");
 
         //savePreference(BOOLEAN,"bAlotTzet72",appWidgetId);
         savePreference(BOOLEAN,"showWeather",appWidgetId);
@@ -336,6 +383,7 @@ public class zcPreferences extends Activity
         savePreference(BOOLEAN,"bLangHebrew",appWidgetId);
         savePreference( BOOLEAN, "bClockElapsedTime", appWidgetId);
         savePreference( BOOLEAN, "bWhiteOnBlack", appWidgetId);
+        savePreference(BOOLEAN,"wpOverlay",appWidgetId);
 
         savePreference(INT,"nShemot",appWidgetId);
 
@@ -375,23 +423,66 @@ public class zcPreferences extends Activity
         ed.apply();
     }
 
+    private void savePreference(prefType type,String key){
+        SharedPreferences.Editor ed =sharedPreferences.edit();
+        int ResId = (type== SIZE) ? 0 : mContext.getResources().getIdentifier(key,type.id,mContext.getPackageName());
+        switch (type){
+            case INT:
+                ed.putInt(key,Integer.valueOf(
+                        sharedPreferences.getString(key,String.valueOf(mContext.getResources().getInteger(ResId)))));
+                break;
+            case SIZE:
+                ed.putInt(key,Integer.valueOf(
+                        sharedPreferences.getString(key,"100")));
+                break;
+            case FLOAT:
+                ed.putFloat(key,Float.valueOf(
+                        sharedPreferences.getString(key,String.valueOf(mContext.getResources().getDimension(ResId)))));
+                break;
+            case STRING:
+                ed.putString(key,
+                        sharedPreferences.getString(key,mContext.getResources().getString(ResId)));
+                break;
+            case BOOLEAN:
+                ed.putBoolean(key+mAppWidgetId,
+                        sharedPreferences.getBoolean(key,mContext.getResources().getBoolean(ResId)));
+                break;
+            case COLOR:
+                ed.putInt(key,
+                        sharedPreferences.getInt(key,mContext.getResources().getColor(ResId)));
+                break;
+            default: break;
+        }
+        ed.apply();
+    }
+
     private void saveColorTheme(String colorTheme, int appWidgetId) {
         Log.d(TAG,"saveColorTheme "+colorTheme);
-        String[] c_array = colorTheme.split(",");
-        if (c_array.length>7) {
-            SharedPreferences.Editor ed = sharedPreferences.edit();
-            ed.putInt("cClockFrameOn" + appWidgetId, Color.parseColor(c_array[0]));
-            ed.putInt("cZmanim_sun" + appWidgetId, Color.parseColor(c_array[0]));
-            ed.putInt("cClockFrameOff" + appWidgetId, Color.parseColor(c_array[1]));
-            ed.putInt("cZmanim_main" + appWidgetId, Color.parseColor(c_array[2]));
-            ed.putInt("cZmanimAlotTzet" + appWidgetId, Color.parseColor(c_array[3]));
-            ed.putInt("cTimemarks" + appWidgetId, Color.parseColor(c_array[5]));
-            ed.putInt("cParshat" + appWidgetId, Color.parseColor(c_array[5]));
-            ed.putInt("cTime" + appWidgetId, Color.parseColor(c_array[4]));
-            ed.putInt("cDate" + appWidgetId, Color.parseColor(c_array[6]));
-            ed.putInt("cShemot" + appWidgetId, Color.parseColor(c_array[7]));
-            ed.apply();
-        }
+        String[] colorArray = colorTheme.split(",");
+        if (colorArray.length<1) return;
+        int[][] index ={
+                {0,0,0,0,0,1,1,1,1,1},
+                {0,0,1,1,1,2,2,2,2,2},
+                {0,0,1,2,2,3,3,3,3,3},
+                {0,0,1,2,3,4,4,4,4,4},
+                {0,0,1,2,3,4,5,5,5,5},
+                {0,0,1,2,3,4,5,5,5,6},
+                {0,0,1,2,3,4,5,6,6,7},
+                {0,0,1,2,3,4,5,6,7,8},
+                {0,1,2,3,4,5,6,7,8,9}};
+        int i = (colorArray.length - 2) % 9;
+        SharedPreferences.Editor ed = sharedPreferences.edit();
+        ed.putInt("cClockFrameOn" + appWidgetId, zcHelper.xColor.copyAlpha(sharedPreferences.getInt("cClockFrameOn",0),Color.parseColor(colorArray[index[i][0]])));
+        ed.putInt("cClockFrameOff" + appWidgetId, zcHelper.xColor.copyAlpha(sharedPreferences.getInt("cClockFrameOff", 0), Color.parseColor(colorArray[index[i][1]])));
+        ed.putInt("cZmanim_sun" + appWidgetId, zcHelper.xColor.copyAlpha(sharedPreferences.getInt("cZmanim_sun", 0), Color.parseColor(colorArray[index[i][2]])));
+        ed.putInt("cZmanim_main" + appWidgetId, zcHelper.xColor.copyAlpha(sharedPreferences.getInt("cZmanim_main", 0), Color.parseColor(colorArray[index[i][3]])));
+        ed.putInt("cZmanimAlotTzet" + appWidgetId, zcHelper.xColor.copyAlpha(sharedPreferences.getInt("cZmanimAlotTzet", 0), Color.parseColor(colorArray[index[i][4]])));
+        ed.putInt("cTime" + appWidgetId, zcHelper.xColor.copyAlpha(sharedPreferences.getInt("cTime", 0), Color.parseColor(colorArray[index[i][5]])));
+        ed.putInt("cTimemarks" + appWidgetId, zcHelper.xColor.copyAlpha(sharedPreferences.getInt("cTimemarks", 0), Color.parseColor(colorArray[index[i][6]])));
+        ed.putInt("cParshat" + appWidgetId, zcHelper.xColor.copyAlpha(sharedPreferences.getInt("cParshat", 0), Color.parseColor(colorArray[index[i][7]])));
+        ed.putInt("cDate" + appWidgetId, zcHelper.xColor.copyAlpha(sharedPreferences.getInt("cDate", 0), Color.parseColor(colorArray[index[i][8]])));
+        ed.putInt("cShemot" + appWidgetId, zcHelper.xColor.copyAlpha(sharedPreferences.getInt("cShemot", 0), Color.parseColor(colorArray[index[i][9]])));
+        ed.apply();
     }
 
 }

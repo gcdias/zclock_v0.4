@@ -67,6 +67,7 @@ public class zcActivity extends ActionBarActivity {
 
     @Override
     public void onStart(){
+        //// TODO: 05-06-2015
         super.onStart();
     }
 
@@ -91,11 +92,32 @@ public class zcActivity extends ActionBarActivity {
         int mode = mPrefs.getInt("clockMode"+appWidgetId,0);
         setContentView(layouts[mode]);
 
+        if (mode < 3) {
+            drawWeatherTable();
+        }
+
         if (mode == 5) {
             mString = new hString(mPrefs.getString("currentPasuk", "(no string)"));
             mString.removeBreakSymbs();
             mGematria = new Gematria(mString);
             drawGematria();
+        }
+    }
+
+    private void drawWeatherTable() {
+        try{
+            zcHelper.WeatherData w = new zcHelper.WeatherData();
+            String json = mPrefs.getString("currWeather", "");
+            w.fromJSONString(json);
+
+            LinearLayout weatherLayout = (LinearLayout)findViewById(R.id.weather_layout);
+            weatherLayout.removeAllViews();
+
+            addTextView(R.id.weather_layout, R.layout.zca_tvgeminfo, String.format("Temp: %.1fºC",w.getCelsius()));
+            addTextView(R.id.weather_layout, R.layout.zca_tvgeminfo, String.format("Hum: %d", w.main_humidity));
+            addTextView(R.id.weather_layout, R.layout.zca_tvgeminfo, String.format("Nub: %d",w.clouds_all));
+        } catch (Exception e){
+            Log.e(TAG, e.toString());
         }
     }
 
@@ -156,12 +178,11 @@ public class zcActivity extends ActionBarActivity {
             TableLayout tb = (TableLayout)findViewById(R.id.tbTorah);
             tb.removeAllViews();
             TableRow.LayoutParams rowParms = new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT,1f);
-            rowParms.gravity= Gravity.CENTER;
+            rowParms.gravity= Gravity.CENTER_HORIZONTAL;
             for (int i =0;i<gMatrix.rows;i++){
                 TableRow tr = new TableRow(this);
                 tr.setLayoutParams(rowParms);
                 for (int j = gMatrix.cols-1; j >-1; j--){
-
                     TextView textView = (TextView) View.inflate(this, R.layout.zcact_matrix, null);
                     textView.setTypeface(stm);
                     textView.setText(gMatrix.get(i,j));

@@ -1,5 +1,7 @@
 package pt.gu.zclock;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
@@ -10,15 +12,21 @@ import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
 import android.util.TypedValue;
 
+import com.google.gson.Gson;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -284,9 +292,14 @@ public class zcHelper {
             float v = this.get(value);
             float s = this.getSize();
             float l = newRange.getSize();
-            if (s == 0|| l == 0) return v;
+            if (s == 0 || l == 0) return v;
             s = (v-this.min)/s;
             return newRange.min+s*l;
+        }
+
+        public float scale (float value, float max, float min){
+            RangeF r = new RangeF(max,min);
+            return this.scale(value,r);
         }
         
         public float getSize(){
@@ -313,10 +326,26 @@ public class zcHelper {
             return Color.HSVToColor(a, hsv);
         }
 
+        public static int setSaturation(float sat, int color){
+            float hsv[] = new float[3];
+            int a = Color.alpha(color);
+            Color.colorToHSV(color,hsv);
+            hsv[1] = sat;
+            return Color.HSVToColor(a, hsv);
+        }
+
         public static float getHue(int color){
             float hsv[] = new float[3];
             Color.colorToHSV(color,hsv);
             return hsv[0];
+        }
+
+        public static int getAHSV(int alpha, float hue, float sat, float val){
+            return Color.HSVToColor(alpha, new float[]{hue,sat,val});
+        }
+
+        public static int getAHSL(int alpha, float hue, float sat, float lum){
+            return AHSLToColor(new float[]{alpha,hue,sat,lum});
         }
 
         public static int setLum(float lum, int color){
@@ -339,7 +368,7 @@ public class zcHelper {
         }
 
         public static float[] ColorToAHSL(int color){
-            float hsv[] = new float[4];
+            float hsv[] = new float[3];
             Color.colorToHSV(color,hsv);
             float hsl[] = HSVtoHSL(hsv);
             return new float[]{Color.alpha(color),hsl[0],hsl[1],hsl[2]};
@@ -373,6 +402,7 @@ public class zcHelper {
 
         public static float[] AHSLtoAHSV(float[] ahsl){
             float ahsv[] = new float[4];
+            ahsv[0] = ahsl[0];
             ahsv[1] = ahsl[1];
             ahsl[3] *= 2;
             ahsl[2] *= (ahsl[3]<=1) ? ahsl[3] : 2-ahsl[3];
@@ -512,6 +542,45 @@ public class zcHelper {
         }
     }
 
+    public static class colorGradient{
+
+        private int size;
+        private int arraysize;
+        private int[] colors;
+        private float[] positions;
+
+        public colorGradient(int[] colors,float[] positions){
+            this.colors=colors;
+            this.positions=positions;
+        }
+
+        public int getColor(float pos){
+            int hi=0,lo=0;
+            int lastIndex = positions.length-1;
+            if (pos<positions[0] || pos>positions[lastIndex]){
+                hi = 0;
+                lo = lastIndex;
+            } else {
+                for (int i=0;i<positions.length;i++) {
+                    if (positions[i] >= pos) hi=i;
+                    if (positions[i] <= pos) lo=i;
+                }
+            }
+            float   len = (positions[hi]-positions[lo] + 1) % 1;
+            if (len == 0) return colors[hi];
+            float   x1 = ((pos - positions[lo] + 1) % 1)/len,
+                    x2 = 1-x1;
+
+            int     c1 = colors[hi],
+                    c2 = colors[lo];
+
+            int     r = (int)(Color.red(c1)*x1+Color.red(c2)*x2);
+            int     g = (int)(Color.green(c1)*x1+Color.green(c2)*x2);
+            int     b = (int)(Color.blue(c1)*x1+Color.blue(c2)*x2);
+            return Color.rgb(r,g,b);
+        }
+    }
+
     public static class WeatherData{
 
         public long   dt;
@@ -572,6 +641,36 @@ public class zcHelper {
             }
         }
 
+        public String toJSONString(){
+            Gson g = new Gson();
+            return g.toJson(this);
+        }
+
+        public void fromJSONString(String json){
+            Gson g = new Gson();
+            try{
+                BufferedReader b = new BufferedReader(new StringReader(json));
+                WeatherData w = g.fromJson(b,WeatherData.class);
+                this.dt=w.dt;
+                this.main_temp=w.main_temp;
+                this.main_temp_min=w.main_temp_min;
+                this.main_temp_max=w.main_temp_max;
+                this.main_pressure=w.main_pressure;
+                this.main_sea_level=w.main_sea_level;
+                this.main_grnd_level=w.main_grnd_level;
+                this.main_humidity=w.main_humidity;
+                this.main_temp_kf=w.main_temp_kf;
+                this.weather_id=w.weather_id;
+                this.sys_pod=w.sys_pod;
+                this.clouds_all=w.clouds_all;
+                this.wind_speed=w.wind_speed;
+                this.wind_deg=w.wind_deg;
+                this.rain_3h=w.rain_3h;
+            } catch (Exception e){
+                Log.e(TAG,e.toString());
+            }
+        }
+
         private double tryDouble (JSONObject obj,String parent, String child){
             try{
                 return obj.getJSONObject(parent).getDouble(child);
@@ -590,6 +689,37 @@ public class zcHelper {
             }
         }
 
+        public float getHueTemperature(float maxHue,float maxTemp,float minHue, float minTemp){
+            RangeF temp = new RangeF(maxTemp,minTemp);
+            return temp.scale(this.getCelsius(),maxHue,minHue);
+        }
+
+        public float getCloudiness(float maxValue,float minValue){
+            RangeF clouds = new RangeF(100,0);
+            return clouds.scale((float)this.clouds_all,maxValue,minValue);
+        }
+
+        public float getRain(float maxRain, float maxValue,float minValue){
+            if (this.rain_3h == 0 || this.rain_3h == Double.NaN) return 0f;
+            RangeF rain = new RangeF(maxRain,0);
+            return rain.scale((float)this.rain_3h,maxValue,minValue);
+        }
+
+        public float getColorSatWeatherCondition(){
+            owmCode c = getEnum(this.weather_id);
+            return c.getColorS();
+        }
+
+        public float getColorSatWeatherCondition(float max, float min){
+            owmCode c = getEnum(this.weather_id);
+            RangeF s = new RangeF(1,0);
+            return s.scale(c.getColorS(),max,min);
+        }
+
+        public float getColorValWeatherCondition(){
+            owmCode c = getEnum(this.weather_id);
+            return c.getColorV();
+        }
 
         public int getColorCondition(int alpha,float maxTempScale, float minTempScale, float startHue, float adjustsat){
             float[] hsv = {0,0.5f,0.5f};
@@ -619,6 +749,11 @@ public class zcHelper {
             return Color.HSVToColor(alpha, hsv);
         }
 
+        public float getAmbientHaze(float max, float min){
+            RangeF r = new RangeF(1,0);
+            return r.scale((this.clouds_all*2+this.main_humidity)/300f,max,min);
+        }
+
         public int getCloudnRainColor(){
             float[] hsv = {0,0.5f,0.5f};
             hsv[0] = 0;
@@ -633,6 +768,28 @@ public class zcHelper {
                 if (c.id == code) return c;
             }
             return owmCode.UNKNOWN;
+        }
+    }
+
+    public static class themeManager{
+
+        private int mainColor;
+        private int contrast;
+
+        public static void setColorTheme(Context context, int appWidgetId, int mainColor, int contrast){
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+            SharedPreferences.Editor ed = sharedPreferences.edit();
+            ed.putInt("cClockFrameOn" + appWidgetId, xColor.setAlpha(contrast, mainColor));
+            ed.putInt("cClockFrameOff" + appWidgetId, xColor.setAlpha((int)(contrast*0.1f),mainColor));
+            ed.putInt("cZmanim_sun" + appWidgetId, xColor.setAlpha((int)(contrast*0.7f), mainColor));
+            ed.putInt("cZmanim_main" + appWidgetId, xColor.setAlpha((int)(contrast*0.8f),mainColor));
+            ed.putInt("cZmanimAlotTzet" + appWidgetId, xColor.setAlpha((int)(contrast*0.8f),mainColor));
+            ed.putInt("cTime" + appWidgetId, xColor.setAlpha((int)(contrast), mainColor));
+            ed.putInt("cTimemarks" + appWidgetId, xColor.setAlpha((int)(contrast*0.8f), mainColor));
+            ed.putInt("cParshat" + appWidgetId, xColor.setAlpha((int)(contrast*0.8f), mainColor));
+            ed.putInt("cDate" + appWidgetId, xColor.setAlpha((int)(contrast*0.8f), mainColor));
+            ed.putInt("cShemot" + appWidgetId, xColor.setAlpha((int)(contrast*0.1f),mainColor));
+            ed.apply();
         }
     }
 
@@ -719,6 +876,11 @@ public class zcHelper {
         }
 
         public static float timeToRadAngle(long time){
+            float f = (time / 60000f) % 1440;
+            return f * (float)Math.PI / 720f;
+        }
+
+        public static float getMinutes(long time){
             float f = (time / 60000f) % 1440;
             return f * (float)Math.PI / 720f;
         }
@@ -1436,5 +1598,52 @@ public class zcHelper {
         */
     }
 
+    public static class SolarTime{
+
+        public static final long dayMilis = 24*60*60*1000;
+
+        private long time;
+        private double latitude;
+        private double rLat;
+        private long sunset;
+
+        public SolarTime(long time, long sunset, double latitude){
+            this.time = time;
+            this.sunset = sunset;
+            this.latitude = latitude;
+            this.rLat = latitude/180*Math.PI;
+        }
+
+        public SolarTime(long sunset, double latitude){
+            this.time = Calendar.getInstance().getTimeInMillis();
+            this.sunset = sunset;
+            this.latitude = latitude;
+        }
+
+        public double getSolarAngle(){
+            double sunDec = getSunDeclination();
+            return Math.asin(Math.cos(getHourAngle(time))*Math.cos(sunDec)*Math.cos(rLat)+Math.sin(sunDec)*Math.sin(rLat));
+        }
+
+        public double getHourAngle(double time){
+            return Math.PI*(time%dayMilis/dayMilis*2-1);
+        }
+
+        public double getSunDeclination(){
+            //return Math.atan(-Math.cos(getHourAngle(sunset))/Math.tan(rLat));
+            int n = Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
+            return (23.45f*Math.PI/180*Math.sin(2*Math.PI*(284+n)/36.25f));
+        }
+
+        public int getSunLightColor(float s){
+            float belowHorz = (float)Math.PI/12;
+            zcHelper.RangeF solarRange = new zcHelper.RangeF((float) (Math.PI/7.675f),-belowHorz);
+            float solarAng =(float) (belowHorz+this.getSolarAngle());
+            float l = solarRange.scale(solarAng,1,0.01f);
+            int rb = (int)(254+l);
+            float h = xColor.getHue(Color.rgb(rb,(int)(253+2*l),rb));
+            return xColor.getAHSL(255,h,s,l);
+        }
+    }
 
 }

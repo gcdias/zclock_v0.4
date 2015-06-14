@@ -294,6 +294,15 @@
 			android:key="nShemot"
 			android:title="Frequency"/>
 	</PreferenceCategory>
+	<PreferenceCategory android:title="Wallpaper Color">
+		<pt.gu.zclock.ColorPreference
+			android:defaultValue="#EEEEEE"
+			android:key="cWallpaper"
+			android:title="WallpaperColor"/>
+		<CheckBoxPreference android:key="wpOverlay"
+			android:title="Cast Haze"
+			android:defaultValue="true"/>
+	</PreferenceCategory>
 	<Preference android:key="resetDefault"
 		android:selectable="true"
 		android:title="@string/pReset"/>

@@ -10,17 +10,41 @@
 	<color name="cDate">#c3ffffff</color>
 	<color name="cParshat">#80ffffff</color>
 	<color name="cShemot">#07ffffff</color>
+    <color name="cWallpaper">#fff2eeee</color>
+
+    <color name="zChtL">#ff020208</color>
+    <color name="hChtL">#ff080610</color>
+    <color name="zAlot">#ff000208</color>
+    <color name="hAlot">#ff204280</color>
+    <color name="zSris">#ff2080b0</color>
+    <color name="hSris">#ffb0e0f0</color>
+    <color name="zChtY">#ff40a8ff</color>
+    <color name="hChtY">#ff98dcff</color>
+    <color name="zSset">#ff4098b0</color>
+    <color name="hSset">#ffffe098</color>
+    <color name="zTzet">#ff224260</color>
+    <color name="hTzet">#ff726572</color>
 
     <string-array name="themeUser">
         <item>Zmanim Clock</item>
         <item>Light Monotone</item>
         <item>Dark Monotone</item>
+        <item>Blue</item>
+        <item>Green</item>
+        <item>Orange</item>
+        <item>Red</item>
+        <item>Magenta</item>
     </string-array>
 
     <string-array name="themeUserColor">
-        <item>#A000C3FF,#2000C3FF,#a020c3ff,#800090c0,#FFFFFFFF,#80FFFFFF,#C3FFFFFF,#48FFFFFF</item>
-        <item>#A0FFFFFF,#48FFFFFF,#A0FFFFFF,#80FFFFFF,#FFFFFFFF,#80FFFFFF,#C3FFFFFF,#48FFFFFF</item>
-        <item>#A0000000,#48000000,#A0000000,#80000000,#FF000000,#80000000,#C3000000,#48000000</item>
+        <item>#A000C3FF,#4000C3FF,#a020c3ff,#a00090c0,#FFFFFFFF,#A0FFFFFF,#C3FFFFFF,#48FFFFFF</item>
+        <item>#A0FFFFFF,#48FFFFFF,#A0FFFFFF,#80FFFFFF,#FFFFFFFF,#A0FFFFFF,#C3FFFFFF,#48FFFFFF</item>
+        <item>#A0000000,#48000000,#A0000000,#80000000,#FF000000,#A0000000,#C3000000,#48000000</item>
+        <item>#A033B5E5,#4033B5E5,#a033B5E5,#800099CC,#FFFFFFFF,#A0FFFFFF,#C3FFFFFF,#48FFFFFF</item>
+        <item>#A099CC00,#4099CC00,#a099CC00,#80669900,#FFFFFFFF,#A0FFFFFF,#C3FFFFFF,#48FFFFFF</item>
+        <item>#A0FFBB33,#40FFBB33,#a0FFBB33,#80FF8800,#FFFFFFFF,#A0FFFFFF,#C3FFFFFF,#48FFFFFF</item>
+        <item>#A0FF4444,#40FF4444,#a0FF4444,#80CC0000,#FFFFFFFF,#A0FFFFFF,#C3FFFFFF,#48FFFFFF</item>
+        <item>#A0AA66CC,#40AA66CC,#a0AA66CC,#809933CC,#FFFFFFFF,#A0FFFFFF,#C3FFFFFF,#48FFFFFF</item>
     </string-array>
 
     <string-array name="themeName">

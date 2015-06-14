@@ -309,6 +309,15 @@ public class zcHelper {
 
     public static class xColor extends Color {
 
+        public static int mix(int c1, int c2, float p){
+            float x1 =p, x2=1-p;
+            int     a = (int)((float)Color.alpha(c1)*x1+(float)Color.alpha(c2)*x2);
+            int     r = (int)((float)Color.red(c1)*x1+(float)Color.red(c2)*x2);
+            int     g = (int)((float)Color.green(c1)*x1+(float)Color.green(c2)*x2);
+            int     b = (int)((float)Color.blue(c1)*x1+(float)Color.blue(c2)*x2);
+            return Color.argb(a, r, g, b);
+        }
+
         public static int setAlpha(int alpha, int color){
             return ( alpha << 24 ) | ( color & 0x00ffffff);
         }
@@ -568,16 +577,9 @@ public class zcHelper {
             }
             float   len = (positions[hi]-positions[lo] + 1) % 1;
             if (len == 0) return colors[hi];
-            float   x1 = ((pos - positions[lo] + 1) % 1)/len,
-                    x2 = 1-x1;
+            float   x1 = ((pos - positions[lo] + 1) % 1)/len;
 
-            int     c1 = colors[hi],
-                    c2 = colors[lo];
-
-            int     r = (int)(Color.red(c1)*x1+Color.red(c2)*x2);
-            int     g = (int)(Color.green(c1)*x1+Color.green(c2)*x2);
-            int     b = (int)(Color.blue(c1)*x1+Color.blue(c2)*x2);
-            return Color.rgb(r,g,b);
+            return xColor.mix(colors[hi],colors[lo],x1);
         }
     }
 

@@ -7,8 +7,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Canvas;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Shader;
@@ -36,8 +34,7 @@ public class zcWallpaper extends WallpaperService{
      */
     @Override
     public Engine onCreateEngine() {
-        Engine e =new zcEngine();
-        return e;
+        return new zcEngine();
     }
 
     public class zcEngine extends Engine{
@@ -69,6 +66,81 @@ public class zcWallpaper extends WallpaperService{
         private IntentFilter intentFilter = new IntentFilter();
         {
             intentFilter.addAction(intentUpdater);
+        }
+
+        private void draw() {
+            SurfaceHolder holder = getSurfaceHolder();
+            boolean castHaze = mPrefs.getBoolean("wpOverlay",true);
+            Canvas c = null;
+
+            try {
+                c = holder.lockCanvas();
+                if (c != null) {
+                    updateGradient();
+                    int c1 = uGrad.getColor(getDayFraction(System.currentTimeMillis()));
+                    int c2 = dGrad.getColor(getDayFraction(System.currentTimeMillis()));
+                    Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+                    if (castHaze){
+                        try{
+                            zcHelper.WeatherData w = new zcHelper.WeatherData();
+                            String json = mPrefs.getString("currWeather", "");
+                            w.fromJSONString(json);
+                            c1 = zcHelper.xColor.adjustSaturation(c1,-w.getClouds(0.9f, -0.1f));
+                            c2 = zcHelper.xColor.adjustSaturation(c2,w.getHumidity(0.2f,0));
+                            c2 = zcHelper.xColor.adjustSaturation(c2,-w.getClouds(0.9f, -0.1f));
+                        } catch (Exception e){
+                            Log.e(TAG, e.toString());
+                        }
+
+                    }
+                    zcHelper.SolarTime s = new zcHelper.SolarTime(mPrefs.getLong("sunsettime",0),(double)mPrefs.getFloat("latitude",0));
+                    zcHelper.RangeF y = new zcHelper.RangeF(1f,0);
+                    float h = c.getHeight();
+                    float y0 = y.scale(s.getSunPosition(),0,h*0.8f);
+                    p.setShader(new LinearGradient(0,y0,0,h,c1,c2, Shader.TileMode.CLAMP));
+                    c.drawPaint(p);
+                }
+            } finally {
+                if (c != null)
+                    holder.unlockCanvasAndPost(c);
+            }
+
+            mHandler.removeCallbacks(mUpdateDisplay);
+            if (mVisible) {
+                mHandler.postDelayed(mUpdateDisplay, 60000);
+            }
+        }
+
+
+        @Override
+        public void onVisibilityChanged(boolean visible) {
+
+            mVisible = visible;
+            if (visible) {
+                registerReceiver(broadcastUpdater,intentFilter);
+                draw();
+            } else {
+                unregisterReceiver(broadcastUpdater);
+                mHandler.removeCallbacks(mUpdateDisplay);
+            }
+        }
+
+        @Override
+        public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+            draw();
+        }
+
+        @Override
+        public void onSurfaceDestroyed(SurfaceHolder holder) {
+            mVisible = false;
+            mHandler.removeCallbacks(mUpdateDisplay);
+        }
+
+        @Override
+        public void onDestroy() {
+            super.onDestroy();
+            mVisible = false;
+            mHandler.removeCallbacks(mUpdateDisplay);
         }
 
         private void updateGradient(){
@@ -105,78 +177,7 @@ public class zcWallpaper extends WallpaperService{
         }
 
         private float getDayFraction(long time){
-            return (time/60000%1440)/1440f;
-        }
-        private void draw() {
-            SurfaceHolder holder = getSurfaceHolder();
-            boolean castHaze = mPrefs.getBoolean("wpOverlay",true);
-            Canvas c = null;
-
-            try {
-                c = holder.lockCanvas();
-                if (c != null) {
-                    updateGradient();
-                    int c1 = uGrad.getColor(getDayFraction(System.currentTimeMillis()));
-                    int c2 = dGrad.getColor(getDayFraction(System.currentTimeMillis()));
-                    Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-                    p.setShader(new LinearGradient(0,0,0,c.getHeight(),c1,c2, Shader.TileMode.CLAMP));
-                    if (castHaze){
-                        try{
-                            zcHelper.WeatherData w = new zcHelper.WeatherData();
-                            String json = mPrefs.getString("currWeather", "");
-                            w.fromJSONString(json);
-                            ColorMatrix colorMatrix = new ColorMatrix();
-                            zcHelper.xColor.adjustSaturation(colorMatrix,w.getAmbientHaze(0.01f,.7f));
-                            p.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
-                            color = zcHelper.xColor.setAlpha(8,w.getColorCondition(0.6f));
-                        } catch (Exception e){
-                            Log.e(TAG, e.toString());
-                        }
-
-                    }
-                    c.drawPaint(p);
-                    if (castHaze) c.drawColor(color);
-                }
-            } finally {
-                if (c != null)
-                    holder.unlockCanvasAndPost(c);
-            }
-
-            mHandler.removeCallbacks(mUpdateDisplay);
-            if (mVisible) {
-                mHandler.postDelayed(mUpdateDisplay, 60000);
-            }
-        }
-
-        @Override
-        public void onVisibilityChanged(boolean visible) {
-
-            mVisible = visible;
-            if (visible) {
-                registerReceiver(broadcastUpdater,intentFilter);
-                draw();
-            } else {
-                unregisterReceiver(broadcastUpdater);
-                mHandler.removeCallbacks(mUpdateDisplay);
-            }
-        }
-
-        @Override
-        public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-            draw();
-        }
-
-        @Override
-        public void onSurfaceDestroyed(SurfaceHolder holder) {
-            mVisible = false;
-            mHandler.removeCallbacks(mUpdateDisplay);
-        }
-
-        @Override
-        public void onDestroy() {
-            super.onDestroy();
-            mVisible = false;
-            mHandler.removeCallbacks(mUpdateDisplay);
+            return time/60000%1440/1440f;
         }
 
     }

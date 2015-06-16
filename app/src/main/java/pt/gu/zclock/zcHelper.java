@@ -35,7 +35,7 @@ import java.util.Date;
 public class zcHelper {
 
     private static final String TAG ="zcHelper";
-    private static final boolean debug = false;
+    private static final boolean debug = true;
 
     public enum owmCode {
         UNKNOWN(Integer.MIN_VALUE),
@@ -173,7 +173,7 @@ public class zcHelper {
 
                 default: return 0;
             }
-        };
+        }
 
         public float getColorV(){
             switch (this){
@@ -236,7 +236,7 @@ public class zcHelper {
 
                 default: return 0;
             }
-        };
+        }
     }
     
     public static class Range{
@@ -310,82 +310,136 @@ public class zcHelper {
     public static class xColor extends Color {
 
         public static int mix(int c1, int c2, float p){
-            float x2 =p, x1=1-p;
-            int     a = (int)((float)Color.alpha(c1)*x1+(float)Color.alpha(c2)*x2);
-            int     r = (int)((float)Color.red(c1)*x1+(float)Color.red(c2)*x2);
-            int     g = (int)((float)Color.green(c1)*x1+(float)Color.green(c2)*x2);
-            int     b = (int)((float)Color.blue(c1)*x1+(float)Color.blue(c2)*x2);
-            return Color.argb(a, r, g, b);
+            float   q = 1-p;
+            int     a = (int)((float)alpha(c1)*q+(float)alpha(c2)*p);
+            int     r = (int)((float)red(c1)*q+(float)red(c2)*p);
+            int     g = (int)((float)green(c1)*q+(float)green(c2)*p);
+            int     b = (int)((float)blue(c1)*q+(float)blue(c2)*p);
+            return argb(a, r, g, b);
         }
-
+        
         public static int setAlpha(int alpha, int color){
             return ( alpha << 24 ) | ( color & 0x00ffffff);
         }
-
         public static int copyAlpha(int source, int dest){
-            int alpha = Color.alpha(source);
-            return setAlpha(alpha,dest);
+            return setAlpha(alpha(source),dest);
         }
 
         public static int setHue(float hue, int color){
             float hsv[] = new float[3];
-            int a = Color.alpha(color);
-            Color.colorToHSV(color,hsv);
+            int a = alpha(color);
+            colorToHSV(color,hsv);
             hsv[0] = hue;
-            return Color.HSVToColor(a, hsv);
-        }
-
-        public static int setSaturation(float sat, int color){
-            float hsv[] = new float[3];
-            int a = Color.alpha(color);
-            Color.colorToHSV(color,hsv);
-            hsv[1] = sat;
-            return Color.HSVToColor(a, hsv);
+            return HSVToColor(a, hsv);
         }
 
         public static float getHue(int color){
             float hsv[] = new float[3];
-            Color.colorToHSV(color,hsv);
+            colorToHSV(color,hsv);
             return hsv[0];
+        }
+        
+        public static float adjustHue(int color, float hueShift){
+            float hsv[] = new float[3];
+            int a = alpha(color);
+            colorToHSV(color,hsv);
+            hsv[0] = (hsv[0]+hueShift)%360f;
+            return HSVToColor(a, hsv); 
+        }
+
+        public static int copyHue(int source, int dest) {
+            float h = getHue(source);
+            return setHue(h,dest);
+        }
+
+        public static int setSaturation(float sat, int color){
+            float hsv[] = new float[3];
+            int a = alpha(color);
+            colorToHSV(color,hsv);
+            hsv[1] = sat;
+            return HSVToColor(a, hsv);
+        }
+        
+        public static float getSaturation(int color){
+            float hsv[] = new float[3];
+            int a = alpha(color);
+            colorToHSV(color,hsv);
+            return hsv[1];
+        }
+
+        public static int adjustSaturation(int color, float satShift){
+            float hsv[] = new float[3];
+            int a = alpha(color);
+            colorToHSV(color,hsv);
+            RangeF rsat= new RangeF(1f,0f);
+            hsv[1] = rsat.get(satShift+hsv[1]);
+            return HSVToColor(a, hsv);
+        }
+        
+        public static int copySaturation(int source, int dest){
+            float s = getSaturation(source);
+            return setSaturation(s,dest);
+        }
+
+        public static int setLuminosity(int color,float lum){
+            float ahsl[] = ColorToAHSL(color);
+            ahsl[3] = lum;
+            return AHSLToColor(ahsl);
+        }
+
+        public static float getLuminosity(int color){
+            float ahsl[] = ColorToAHSL(color);
+            return ahsl[3];
+        }
+
+        public static int adjustLuminosity(int color, float lumShift){
+            float ahsl[] = ColorToAHSL(color);
+            RangeF rsat= new RangeF(1f,0f);
+            ahsl[3] = rsat.get(lumShift+ahsl[3]);
+            return AHSLToColor(ahsl);
+        }
+
+        public static int setVal(float val, int color){
+            float hsv[] = new float[3];
+            int a = alpha(color);
+            colorToHSV(color,hsv);
+            hsv[2] = val;
+            return HSVToColor(a, hsv);
+        }
+
+        public static float getVal(int color){
+            float hsv[] = new float[3];
+            colorToHSV(color,hsv);
+            return hsv[2];
+        }
+
+        public static int adjustVal(int color, float valShift){
+            float hsv[] = new float[3];
+            int a = alpha(color);
+            colorToHSV(color,hsv);
+            RangeF rsat= new RangeF(1f,0f);
+            hsv[2] = rsat.get(valShift+hsv[2]);
+            return HSVToColor(a,hsv);
         }
 
         public static int getAHSV(int alpha, float hue, float sat, float val){
-            return Color.HSVToColor(alpha, new float[]{hue,sat,val});
+            return HSVToColor(alpha, new float[]{hue, sat,val});
         }
 
         public static int getAHSL(int alpha, float hue, float sat, float lum){
             return AHSLToColor(new float[]{alpha,hue,sat,lum});
         }
 
-        public static int setLum(float lum, int color){
-            float ahsl[] = ColorToAHSL(color);
-            ahsl[3] = lum;
-            return AHSLToColor(ahsl);
-        }
-
-        public static int setVal(float val, int color){
-            float hsv[] = new float[3];
-            int a = Color.alpha(color);
-            Color.colorToHSV(color,hsv);
-            hsv[2] = val;
-            return Color.HSVToColor(a, hsv);
-        }
-
-        public static int copyHue(int source, int dest) {
-            float h = getHue(dest);
-            return setHue(h,source);
-        }
-
         public static float[] ColorToAHSL(int color){
             float hsv[] = new float[3];
-            Color.colorToHSV(color,hsv);
+            colorToHSV(color,hsv);
             float hsl[] = HSVtoHSL(hsv);
-            return new float[]{Color.alpha(color),hsl[0],hsl[1],hsl[2]};
+            return new float[]{alpha(color),hsl[0],hsl[1],hsl[2]};
         }
 
         public static int AHSLToColor(float[] ahsl){
             float ahsv[] = AHSLtoAHSV(ahsl);
-            return Color.HSVToColor((int)ahsv[0],new float[]{ahsv[1],ahsv[2],ahsv[3]});
+            return HSVToColor((int) ahsv[0], new float[]{ahsv[1], ahsv[2], ahsv[3]});
         }
 
         public static float[] AHSVtoAHSL(float[] ahsv){
@@ -483,6 +537,11 @@ public class zcHelper {
             cm.postConcat(new ColorMatrix(mat));
         }
 
+        /**
+         *
+         * @param cm ColorMatrix
+         * @param value (0-100)
+         */
         public static void adjustContrast(ColorMatrix cm, int value) {
             value = (int)cleanValue(value,100);
             if (value == 0) {
@@ -514,6 +573,11 @@ public class zcHelper {
 
         }
 
+        /**
+         *
+         * @param cm ColorMatrix
+         * @param value (0-100)
+         */
         public static void adjustSaturation(ColorMatrix cm, float value) {
             value = cleanValue(value,100);
             if (value == 0) {
@@ -571,13 +635,15 @@ public class zcHelper {
                 c1 = colors[lastIndex];
                 c2 = colors[0];
                 len = 1-positions[lastIndex]+positions[0];
-                x = pos/len;
+                x = (1-positions[lastIndex]+pos)/len;
+                if (debug) Log.e(TAG,String.format("/colorGrad/getColor %08X-%08X [%.2f]",c1,c2,x));
                 return xColor.mix(c1,c2,x);
             } else if (pos > positions[lastIndex]){
                 c1 = colors[lastIndex];
                 c2 = colors[0];
                 len = 1-positions[lastIndex]+positions[0];
                 x = (pos-positions[lastIndex])/len;
+                if (debug) Log.e(TAG,String.format("/colorGrad/getColor %08X-%08X [%.2f]",c1,c2,x));
                 return xColor.mix(c1,c2,x);
             } else {
                 int hi=0,lo=0;
@@ -590,6 +656,7 @@ public class zcHelper {
                 len = positions[hi]-positions[lo];
                 if (len == 0) return c1;
                 x = (pos-positions[lo])/len;
+                if (debug) Log.e(TAG,String.format("/colorGrad/getColor %08X-%08X [%.2f]",c1,c2,x));
                 return xColor.mix(c1,c2,x);
             }
 
@@ -724,7 +791,12 @@ public class zcHelper {
             return temp.scale(this.getCelsius(),maxHue,minHue);
         }
 
-        public float getCloudiness(float maxValue,float minValue){
+        public float getHumidity(float maxValue,float minValue){
+            RangeF hum = new RangeF(100,0);
+            return hum.scale((float)this.main_humidity,maxValue,minValue);
+        }
+
+        public float getClouds(float maxValue,float minValue){
             RangeF clouds = new RangeF(100,0);
             return clouds.scale((float)this.clouds_all,maxValue,minValue);
         }
@@ -784,6 +856,7 @@ public class zcHelper {
             return r.scale((this.clouds_all*2+this.main_humidity)/300f,max,min);
         }
 
+
         public int getCloudnRainColor(){
             float[] hsv = {0,0.5f,0.5f};
             hsv[0] = 0;
@@ -814,7 +887,7 @@ public class zcHelper {
             ed.putInt("cZmanim_sun" + appWidgetId, xColor.setAlpha((int)(contrast*0.7f), mainColor));
             ed.putInt("cZmanim_main" + appWidgetId, xColor.setAlpha((int)(contrast*0.8f),mainColor));
             ed.putInt("cZmanimAlotTzet" + appWidgetId, xColor.setAlpha((int)(contrast*0.8f),mainColor));
-            ed.putInt("cTime" + appWidgetId, xColor.setAlpha((int)(contrast), mainColor));
+            ed.putInt("cTime" + appWidgetId, xColor.setAlpha(contrast, mainColor));
             ed.putInt("cTimemarks" + appWidgetId, xColor.setAlpha((int)(contrast*0.8f), mainColor));
             ed.putInt("cParshat" + appWidgetId, xColor.setAlpha((int)(contrast*0.8f), mainColor));
             ed.putInt("cDate" + appWidgetId, xColor.setAlpha((int)(contrast*0.8f), mainColor));
@@ -1665,11 +1738,15 @@ public class zcHelper {
             return (23.45f*Math.PI/180*Math.sin(2*Math.PI*(284+n)/36.25f));
         }
 
-        public int getSunLightColor(float s){
+        public float getSunPosition(){
             float belowHorz = (float)Math.PI/12;
             zcHelper.RangeF solarRange = new zcHelper.RangeF((float) (Math.PI/7.675f),-belowHorz);
             float solarAng =(float) (belowHorz+this.getSolarAngle());
-            float l = solarRange.scale(solarAng,1,0.01f);
+            return solarRange.scale(solarAng,1f,0f);
+        }
+
+        public int getSunLightColor(float s){
+            float l = getSunPosition();
             int rb = (int)(254+l);
             float h = xColor.getHue(Color.rgb(rb,(int)(253+2*l),rb));
             return xColor.getAHSL(255,h,s,l);

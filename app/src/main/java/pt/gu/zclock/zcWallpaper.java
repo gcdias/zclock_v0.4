@@ -5,16 +5,30 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.res.AssetManager;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.Picture;
+import android.graphics.Rect;
 import android.graphics.Shader;
+import android.graphics.drawable.PictureDrawable;
+import android.hardware.display.DisplayManager;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.service.wallpaper.WallpaperService;
+import android.support.v4.hardware.display.DisplayManagerCompat;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.SurfaceHolder;
+import android.view.WindowManager;
+
+import com.applantation.android.svg.SVG;
+import com.applantation.android.svg.SVGParser;
 
 /**
  * Created by GU on 07-06-2015.
@@ -25,6 +39,9 @@ public class zcWallpaper extends WallpaperService{
     private static final boolean debug = true;
 
     public static final String intentUpdater = "pt.gu.zclock.zcWallpaper";
+
+    private static PictureDrawable svgPicture;
+    private static SVG svgBackground;
 
     /**
      * Must be implemented to return a new instance of the wallpaper's engine.
@@ -43,6 +60,10 @@ public class zcWallpaper extends WallpaperService{
         private final Handler mHandler = new Handler();
         private SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         private int color = 0;
+        private int x_offset=0;
+
+        private Bitmap background;
+        private boolean checkBackground = true;
 
         private int[] upColors,dwColors;
         private zcHelper.colorGradient uGrad, dGrad;
@@ -97,8 +118,15 @@ public class zcWallpaper extends WallpaperService{
                     zcHelper.RangeF y = new zcHelper.RangeF(1f,0);
                     float h = c.getHeight();
                     float y0 = y.scale(s.getSunPosition(),0,h*0.8f);
-                    p.setShader(new LinearGradient(0,y0,0,h,c1,c2, Shader.TileMode.CLAMP));
+                    p.setShader(new LinearGradient(0, y0, 0, h, c1, c2, Shader.TileMode.CLAMP));
                     c.drawPaint(p);
+                    if (checkBackground){
+                        background= zcHelper.xSGV.getBitmap(getApplicationContext(),"svg/mountains.svg",c.getWidth(),(int)(h/7));
+                        checkBackground = (background!=null);
+                    }
+                    if (!checkBackground&&background!=null){
+                        c.drawBitmap(background, x_offset, c.getHeight()-background.getHeight(), p);
+                    }
                 }
             } finally {
                 if (c != null)
@@ -109,6 +137,13 @@ public class zcWallpaper extends WallpaperService{
             if (mVisible) {
                 mHandler.postDelayed(mUpdateDisplay, 60000);
             }
+        }
+
+        @Override
+        public void onOffsetsChanged(float xOffset, float yOffset,
+                                     float xStep, float yStep, int xPixels, int yPixels) {
+            x_offset = xPixels;
+            draw();
         }
 
 
@@ -127,6 +162,7 @@ public class zcWallpaper extends WallpaperService{
 
         @Override
         public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
             draw();
         }
 

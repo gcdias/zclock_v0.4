@@ -12,17 +12,17 @@
 	<color name="cShemot">#07ffffff</color>
     <color name="cWallpaper">#fff2eeee</color>
 
-    <color name="zChtL">#ff020208</color>
+    <color name="zChtL">#ff020204</color>
     <color name="hChtL">#ff080610</color>
     <color name="zAlot">#ff000208</color>
-    <color name="hAlot">#ff204280</color>
+    <color name="hAlot">#ff264280</color>
     <color name="zSris">#ff2080b0</color>
-    <color name="hSris">#ffb0e0f0</color>
-    <color name="zChtY">#ff40a8ff</color>
-    <color name="hChtY">#ff98dcff</color>
-    <color name="zSset">#ffa8d0d8</color>
-    <color name="hSset">#ffffe098</color>
-    <color name="zTzet">#ff224260</color>
+    <color name="hSris">#ffd0e8f0</color>
+    <color name="zChtY">#ffa0d0ff</color>
+    <color name="hChtY">#ffb0e0ff</color>
+    <color name="zSset">#ff80c4c8</color>
+    <color name="hSset">#fffff8f0</color>
+    <color name="zTzet">#ff112130</color>
     <color name="hTzet">#ff726572</color>
 
     <string-array name="themeUser">

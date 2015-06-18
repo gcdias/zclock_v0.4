@@ -3,20 +3,28 @@ package pt.gu.zclock;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Picture;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.graphics.drawable.PictureDrawable;
 import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
 import android.util.TypedValue;
 
+import com.applantation.android.svg.SVG;
+import com.applantation.android.svg.SVGParseException;
+import com.applantation.android.svg.SVGParser;
 import com.google.gson.Gson;
 
 import org.json.JSONException;
@@ -628,8 +636,8 @@ public class zcHelper {
         }
 
         public int getColor(float pos){
-            int c1,c2;
-            float x,len;
+            int c1 = 0,c2 =0;
+            float x=0,len =0;
             int lastIndex = positions.length-1;
             if (pos < positions[0]){
                 c1 = colors[lastIndex];
@@ -646,16 +654,15 @@ public class zcHelper {
                 if (debug) Log.e(TAG,String.format("/colorGrad/getColor %08X-%08X [%.2f]",c1,c2,x));
                 return xColor.mix(c1,c2,x);
             } else {
-                int hi=0,lo=0;
-                for (int i=0;i<positions.length;i++) {
-                    if (positions[i] >= pos) hi=i;
-                    if (positions[i] <= pos) lo=i;
+                for (int i=0;i<positions.length-1;i++) {
+                    if (pos >= positions[i] && pos<positions[i+1]) {
+                        if (pos == positions[i]) return colors[i];
+                        c1 = colors[i];
+                        c2 = colors[i+1];
+                        x = (pos-positions[i])/(positions[i+1]-positions[i]);
+                        break;
+                    }
                 }
-                c1 = colors[lo];
-                c2 = colors[hi];
-                len = positions[hi]-positions[lo];
-                if (len == 0) return c1;
-                x = (pos-positions[lo])/len;
                 if (debug) Log.e(TAG,String.format("/colorGrad/getColor %08X-%08X [%.2f]",c1,c2,x));
                 return xColor.mix(c1,c2,x);
             }
@@ -1750,6 +1757,23 @@ public class zcHelper {
             int rb = (int)(254+l);
             float h = xColor.getHue(Color.rgb(rb,(int)(253+2*l),rb));
             return xColor.getAHSL(255,h,s,l);
+        }
+    }
+
+    public static class xSGV{
+
+        public static Bitmap getBitmap(Context context,String assetPath, int width, int height){
+            try{
+                SVG svg = SVGParser.getSVGFromAsset(context.getAssets(), assetPath);
+                PictureDrawable pd = svg.createPictureDrawable();
+                Bitmap b = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(b);
+                canvas.drawPicture(pd.getPicture());
+                return b;
+            } catch (Exception ex){
+                Log.e(TAG,"/xSVG: "+ex.toString());
+                return null;
+            }
         }
     }
 

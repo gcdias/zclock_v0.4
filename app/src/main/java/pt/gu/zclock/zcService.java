@@ -231,11 +231,13 @@ public class zcService extends Service{
             zCalendar = new ComplexZmanimCalendar(mLocation.geoLocation());
             SharedPreferences.Editor ed = mPrefs.edit();
             ed.putLong("lastZmanimUpdate",newday);
-            ed.putLong("sunrisetime",zCalendar.getSunrise().getTime());
-            ed.putLong("sunsettime",zCalendar.getSunset().getTime());
+            ed.putLong("sunrise",zCalendar.getSunrise().getTime());
+            ed.putLong("sunset",zCalendar.getSunset().getTime());
             ed.putLong("tzait72",zCalendar.getTzais72().getTime());
+            ed.putLong("tzait60",zCalendar.getTzais60().getTime());
             ed.putLong("alot72",zCalendar.getAlos72().getTime());
-            ed.putLong("midday",zCalendar.getChatzos().getTime());
+            ed.putLong("alot60",zCalendar.getAlos60().getTime());
+            ed.putLong("chatzot",zCalendar.getChatzos().getTime());
             ed.putLong("midnight",zCalendar.getSolarMidnight().getTime());
             ed.apply();
             resetClock(appWidgetId);

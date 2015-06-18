@@ -1775,6 +1775,20 @@ public class zcHelper {
                 return null;
             }
         }
+
+        public static Bitmap getBitmap(Context context, String assetPath){
+            try{
+                SVG svg = SVGParser.getSVGFromAsset(context.getAssets(), assetPath);
+                PictureDrawable pd = svg.createPictureDrawable();
+                Bitmap b = Bitmap.createBitmap(pd.getIntrinsicWidth(), pd.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(b);
+                canvas.drawPicture(pd.getPicture());
+                return b;
+            } catch (Exception ex){
+                Log.e(TAG,"/xSVG: "+ex.toString());
+                return null;
+            }
+        }
     }
 
 }

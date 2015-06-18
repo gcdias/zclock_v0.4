@@ -9,6 +9,7 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -117,15 +118,16 @@ public class zcWallpaper extends WallpaperService{
                     zcHelper.SolarTime s = new zcHelper.SolarTime(mPrefs.getLong("sunsettime",0),(double)mPrefs.getFloat("latitude",0));
                     zcHelper.RangeF y = new zcHelper.RangeF(1f,0);
                     float h = c.getHeight();
-                    float y0 = y.scale(s.getSunPosition(),0,h*0.8f);
+                    float y0 = y.scale(s.getSunPosition(),0,h*0.7f);
                     p.setShader(new LinearGradient(0, y0, 0, h, c1, c2, Shader.TileMode.CLAMP));
                     c.drawPaint(p);
-                    if (checkBackground){
-                        background= zcHelper.xSGV.getBitmap(getApplicationContext(),"svg/mountains.svg",c.getWidth(),(int)(h/7));
-                        checkBackground = (background!=null);
-                    }
-                    if (!checkBackground&&background!=null){
-                        c.drawBitmap(background, x_offset, c.getHeight()-background.getHeight(), p);
+                    if (background==null){
+                        background= zcHelper.xSGV.getBitmap(getApplicationContext(),"svg/encostadodouro.svg");
+                    } else {
+                        c.drawBitmap(background, x_offset, c.getHeight() - background.getHeight(), p);
+                        //Paint black = new Paint();
+                        //black.setColor(Color.BLACK);
+                        //c.drawRect(0,c.getHeight()-50,c.getWidth(),c.getHeight(),black);
                     }
                 }
             } finally {
@@ -184,28 +186,34 @@ public class zcWallpaper extends WallpaperService{
             float[] pos = new float[]{
                     getDayFraction(mPrefs.getLong("midnight", 0)),
                     getDayFraction(mPrefs.getLong("alot72", 0)),
-                    getDayFraction(mPrefs.getLong("sunrisetime", 0)),
-                    getDayFraction(mPrefs.getLong("midday", 0)),
-                    getDayFraction(mPrefs.getLong("sunsettime", 0)),
+                    getDayFraction(mPrefs.getLong("alot60", 0)),
+                    getDayFraction(mPrefs.getLong("sunriset", 0)),
+                    getDayFraction(mPrefs.getLong("chatzot", 0)),
+                    getDayFraction(mPrefs.getLong("sunset", 0)),
+                    getDayFraction(mPrefs.getLong("tzait60", 0)),
                     getDayFraction(mPrefs.getLong("tzait72", 0))};
 
             Resources res = getApplicationContext().getResources();
             if (upColors == null) upColors  = new int[]{
                     res.getColor(R.color.zChtL),
-                    res.getColor(R.color.zAlot),
+                    res.getColor(R.color.zAl72),
+                    res.getColor(R.color.zAl60),
                     res.getColor(R.color.zSris),
                     res.getColor(R.color.zChtY),
                     res.getColor(R.color.zSset),
-                    res.getColor(R.color.zTzet)
+                    res.getColor(R.color.zTz60),
+                    res.getColor(R.color.zTz72)
             };
 
             if (dwColors == null) dwColors  = new int[]{
                     res.getColor(R.color.hChtL),
-                    res.getColor(R.color.hAlot),
+                    res.getColor(R.color.hAl72),
+                    res.getColor(R.color.hAl60),
                     res.getColor(R.color.hSris),
                     res.getColor(R.color.hChtY),
                     res.getColor(R.color.hSset),
-                    res.getColor(R.color.hTzet)
+                    res.getColor(R.color.hTz60),
+                    res.getColor(R.color.hTz72)
             };
 
             uGrad = new zcHelper.colorGradient(upColors,pos);

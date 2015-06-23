@@ -43,7 +43,7 @@ import java.util.Date;
 public class zcHelper {
 
     private static final String TAG ="zcHelper";
-    private static final boolean debug = true;
+    private static final boolean debug = false;
 
     public enum owmCode {
         UNKNOWN(Integer.MIN_VALUE),
@@ -402,8 +402,9 @@ public class zcHelper {
 
         public static int adjustLuminosity(int color, float lumShift){
             float ahsl[] = ColorToAHSL(color);
-            RangeF rsat= new RangeF(1f,0f);
-            ahsl[3] = rsat.get(lumShift+ahsl[3]);
+            //RangeF rsat= new RangeF(1f,0f);
+            //ahsl[3] = rsat.get(lumShift+ahsl[3]);
+            ahsl[3] = (lumShift + ahsl[3])%1.00f;
             return AHSLToColor(ahsl);
         }
 
@@ -465,7 +466,7 @@ public class zcHelper {
             float hsl[] = new float[3];
             hsl[0] = hsv[0];
             hsl[1] = hsv[1] * hsv[2];
-            hsl[2] = (2-hsv[0])*hsv[2];
+            hsl[2] = (2-hsv[1])*hsv[2];
             hsl[1] /= (hsl[2]<=1) ? hsl[2] : 2-hsl[2];
             hsl[2] /= 2;
             return hsl;
@@ -804,8 +805,9 @@ public class zcHelper {
         }
 
         public float getClouds(float maxValue,float minValue){
-            RangeF clouds = new RangeF(100,0);
-            return clouds.scale((float)this.clouds_all,maxValue,minValue);
+            RangeF clouds = new RangeF(100f,0f);
+            float res =clouds.scale((float)this.clouds_all,maxValue,minValue);
+            return res;
         }
 
         public float getRain(float maxRain, float maxValue,float minValue){

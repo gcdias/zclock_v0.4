@@ -29,7 +29,7 @@ import static pt.gu.zclock.zcHelper.WeatherData;
  */
 public class zcWeather{
 
-    private final boolean       debug               = true;
+    private final boolean       debug               = false;
     private final String        TAG                 = "zcWeather";
     private final String        FORECAST_URL        = "http://api.openweathermap.org/data/2.5/forecast?";
 

@@ -69,6 +69,10 @@ public class zcWallpaper extends WallpaperService{
 
         private SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
+        @Override
+        public void onCreate(SurfaceHolder surfaceholder){
+        }
+
         private final Runnable mUpdateDisplay = new Runnable() {
             @Override
             public void run() {
@@ -97,8 +101,10 @@ public class zcWallpaper extends WallpaperService{
                             String json = mPrefs.getString("currWeather", "");
                             w.fromJSONString(json);
                             c1 = zcHelper.xColor.adjustSaturation(c1,-w.getClouds(0.9f, -0.1f));
-                            c2 = zcHelper.xColor.adjustSaturation(c2,w.getHumidity(0.2f,0));
+                            c1 = zcHelper.xColor.adjustLuminosity(c1, -w.getClouds(0.3f, 0));
+                            c2 = zcHelper.xColor.adjustSaturation(c2, -w.getHumidity(0.2f, 0));
                             c2 = zcHelper.xColor.adjustSaturation(c2,-w.getClouds(0.9f, -0.1f));
+                            c2 = zcHelper.xColor.adjustLuminosity(c2, -w.getClouds(0.4f, 0));
                         } catch (Exception e){
                             Log.e(TAG, e.toString());
                         }
@@ -143,16 +149,21 @@ public class zcWallpaper extends WallpaperService{
             mVisible = visible;
             if (visible) {
                 draw();
-                mPrefs.registerOnSharedPreferenceChangeListener(this);
+                //mPrefs.registerOnSharedPreferenceChangeListener(this);
             } else {
                 mHandler.removeCallbacks(mUpdateDisplay);
-                mPrefs.unregisterOnSharedPreferenceChangeListener(this);
+                //mPrefs.unregisterOnSharedPreferenceChangeListener(this);
             }
         }
 
         @Override
         public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
             draw();
+        }
+
+        @Override
+        public void onSurfaceCreated(SurfaceHolder holder) {
+            mPrefs.registerOnSharedPreferenceChangeListener(this);
         }
 
         @Override
@@ -218,9 +229,10 @@ public class zcWallpaper extends WallpaperService{
         }
 
         @Override
-        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
             if (key.equals("wptLandscape")){
-                background= zcHelper.xSGV.getBitmap(getApplicationContext(),mPrefs.getString("wptLandscape","svg/mountains.svg"));
+                if (debug) Log.d(TAG,"onSharedPrefsChanged/wptLandscape");
+                updateBackground();
             } else if (key.equals("latitude") || key.equals("longitude")){
                 updateGradient();
             }

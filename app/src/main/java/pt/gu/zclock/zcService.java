@@ -275,6 +275,8 @@ public class zcService extends Service{
                 if (getBoolPref("show72Hashem", appWidgetId)) {
                     mClock.setBackgroundPicture(
                             getHashemNames(mClock.getPxClock(), appWidgetId, HASHEM_72, bkgDark ? 0x08ffffff : 0x08000000, 0));
+                } else {
+                    mClock.setBackgroundPicture(null);
                 }
 
                 return mClock.draw(appWidgetId,newday);

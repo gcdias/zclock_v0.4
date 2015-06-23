@@ -47,6 +47,7 @@
 	<bool name="show72Hashem">true</bool>
 	<bool name="showWeather">true</bool>
 	<bool name="bClockElapsedTime">true</bool>
+
 	<bool name="wpOverlay">true</bool>
 	<bool name="wpbLandscape">true</bool>
 	<string name="wptLandscape">svg/mountains.svg</string>

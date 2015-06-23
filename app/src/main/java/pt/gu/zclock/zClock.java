@@ -35,7 +35,7 @@ import static pt.gu.zclock.zcHelper.xColor;
  */
 public class zClock {
 
-    private boolean         debug = true;
+    private boolean         debug = false;
     private final String    TAG = "zClock";
     private final int       CLOCK_MODE_DAY_UP=0;
     private final int       CLOCK_MODE_DAY_DOWN=1;

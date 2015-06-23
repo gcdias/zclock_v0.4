@@ -300,7 +300,7 @@
 			android:dependency="wpbLandscape"
 			android:defaultValue="@string/wptLandscape"/>
 		<CheckBoxPreference android:key="wpOverlay"
-			android:title="Cast Haze"
+			android:title="Render Weather Condition"
 			android:defaultValue="true"/>
 	</PreferenceCategory>
 	<Preference android:key="resetDefault"

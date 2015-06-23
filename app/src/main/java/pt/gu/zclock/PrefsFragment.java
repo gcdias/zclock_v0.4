@@ -28,7 +28,7 @@ public class PrefsFragment
         extends PreferenceFragment
         implements Preference.OnPreferenceClickListener {
 
-    private boolean       debug;
+    private boolean       debug = false;
     private final String  TAG = "PrefsFragment";
     private Context       mContext;
     private SharedPreferences sharedPreferences;

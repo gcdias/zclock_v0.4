@@ -34,4 +34,5 @@
 	<string name="colorThemeSum">colorThemeSum</string>
 	<string name="pshowWeather">Mostrar Moldura Meteorológica</string>
 	<string name="pszWeatherFrame">Tamanho da Moldura</string>
+	<string name="pCurrWeather">Update Weather</string>
 </resources>

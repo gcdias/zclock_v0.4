@@ -54,7 +54,8 @@ public class zcService extends Service{
     private boolean            debug = false;
 
     public static final String ZC_SETTINGSUPDATE = "pt.gu.zclock.service";
-    public static final String ZC_FORECASTUPDATE  = "pt.gu.zclock.forecast";
+    public static final String ZC_FORECASTUPDATE  = "pt.gu.zclock.updforecast";
+    public static final String ZC_GETFORECAST    = "pt.gu.zclock.getforecast";
     public static final String ZC_LOCATIONUPDATE = "pt.gu.zclock.location";
 
     private final int    HASHEM_72       = 0;
@@ -115,6 +116,7 @@ public class zcService extends Service{
         intentFilter.addAction(ZC_FORECASTUPDATE);
         intentFilter.addAction(ZC_LOCATIONUPDATE);
         intentFilter.addAction(ZC_SETTINGSUPDATE);
+        intentFilter.addAction(ZC_GETFORECAST);
     }
 
     private BroadcastReceiver  intentReceiver = new BroadcastReceiver() {
@@ -155,6 +157,11 @@ public class zcService extends Service{
                     int id = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,AppWidgetManager.INVALID_APPWIDGET_ID);
                     if (id!=AppWidgetManager.INVALID_APPWIDGET_ID) resetClock(id);
                     updateWidgets(context, manager, manager.getAppWidgetIds(widgets));
+                }
+
+                if (action.equals(ZC_GETFORECAST)) {
+                    if (debug) Log.d(TAG + ".onReceive", "ZC_GETFORECAST Intent");
+                    mWeather.updateForecast(mLocation.latitude, mLocation.longitude);
                 }
             }
 
@@ -412,9 +419,10 @@ public class zcService extends Service{
         int zAlot = getIntPref("zmanimAlot", appWidgetId);
         int zTzet = getIntPref("zmanimTzet", appWidgetId);
 
-        Date alot, tzet;
+        Date alot, tzet,shmaMGA,shmaGRA,tfilaMGA,tfilaGRA;
         switch (zAlot) {
-            case 1: alot = zCalendar.getAlos60(); break;
+            case 1:
+                alot = zCalendar.getAlos60(); break;
             case 2: alot = zCalendar.getAlos72();break;
             case 3: alot = zCalendar.getAlos90();break;
             case 4: alot = zCalendar.getAlos120();break;

@@ -1,6 +1,7 @@
 package pt.gu.zclock;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -16,6 +17,9 @@ import android.renderscript.RenderScript;
 import android.renderscript.ScriptIntrinsicBlur;
 import android.util.Log;
 import android.view.View;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Created by GU on 24-12-2014.
@@ -88,6 +92,7 @@ public class PrefsFragment
         }
         return false;
     }
+
 
     private void setWidgetDefaultPreferences(){
 

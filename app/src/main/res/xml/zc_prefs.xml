@@ -5,9 +5,7 @@
 	android:title="zClock"
 	android:persistent="true"
     android:icon="@drawable/g3970">
-
-	<Preference
-		android:key="updateLocation"
+	<Preference android:key="updateLocation"
 		android:title="@string/pCurrLocation" />
 	<pt.gu.zclock.ColorListPreference
         android:title="Color Theme"
@@ -220,78 +218,76 @@
 				android:summary="Show inside frame"
 				android:title="Placement"/>
 		</PreferenceCategory>
+        <PreferenceCategory android:title="@string/pc_HebDate">
+            <CheckBoxPreference
+                android:defaultValue="@bool/showHebDate"
+                android:key="showHebDate"
+                android:title="@string/pShowHebDate"/>
+            <CheckBoxPreference
+                android:defaultValue="@bool/bLangHebrew"
+                android:dependency="showHebDate"
+                android:key="bLangHebrew"
+                android:title="@string/pbLangHebrew"/>
+            <pt.gu.zclock.ColorPreference
+                android:defaultValue="@color/cDate"
+                android:dependency="showHebDate"
+                android:key="cDate"
+                android:title="@string/pColor"/>
+            <ListPreference
+                android:defaultValue="100"
+                android:dependency="showHebDate"
+                android:entries="@array/sz_names"
+                android:entryValues="@array/szPercentM"
+                android:key="szDate"
+                android:title="@string/pSize"/>
+        </PreferenceCategory>
+        <PreferenceCategory android:title="@string/pc_parashat"
+            android:summary="@string/pcsParashat">
+            <CheckBoxPreference
+                android:defaultValue="@bool/showParashat"
+                android:key="showParashat"
+                android:title="@string/pShowParashat"/>
+            <pt.gu.zclock.ColorPreference
+                android:defaultValue="@color/cParshat"
+                android:dependency="showParashat"
+                android:key="cParshat"
+                android:title="@string/pColor"/>
+            <ListPreference
+                android:defaultValue="100"
+                android:dependency="showParashat"
+                android:entries="@array/sz_names"
+                android:entryValues="@array/szPercentM"
+                android:key="szParshat"
+                android:title="@string/pSize"/>
+        </PreferenceCategory>
+        <PreferenceCategory android:title="72 Shemot"
+            android:summary="@string/pc_72Names">
+            <CheckBoxPreference
+                android:defaultValue="@bool/show72Hashem"
+                android:key="show72Hashem"
+                android:shouldDisableView="true"
+                android:title="@string/pShow72Names"/>
+            <pt.gu.zclock.ColorPreference
+                android:defaultValue="@color/cShemot"
+                android:dependency="show72Hashem"
+                android:key="cShemot"
+                android:title="@string/pColor"/>
+            <ListPreference
+                android:defaultValue="100"
+                android:dependency="show72Hashem"
+                android:entries="@array/sz_names"
+                android:entryValues="@array/szPercentS"
+                android:key="szShemot"
+                android:title="@string/pSize"/>
+            <ListPreference
+                android:defaultValue="@integer/nShemot"
+                android:dependency="show72Hashem"
+                android:entries="@array/nShemot_label"
+                android:entryValues="@array/nShemot"
+                android:key="nShemot"
+                android:title="Frequency"/>
+        </PreferenceCategory>
 	</PreferenceScreen>
-	<PreferenceCategory android:title="@string/pc_HebDate">
-		<CheckBoxPreference
-			android:defaultValue="@bool/showHebDate"
-			android:key="showHebDate"
-			android:title="@string/pShowHebDate"/>
-		<CheckBoxPreference
-			android:defaultValue="@bool/bLangHebrew"
-			android:dependency="showHebDate"
-			android:key="bLangHebrew"
-			android:title="@string/pbLangHebrew"/>
-		<pt.gu.zclock.ColorPreference
-			android:defaultValue="@color/cDate"
-			android:dependency="showHebDate"
-			android:key="cDate"
-			android:title="@string/pColor"/>
-		<ListPreference
-			android:defaultValue="100"
-			android:dependency="showHebDate"
-			android:entries="@array/sz_names"
-			android:entryValues="@array/szPercentM"
-			android:key="szDate"
-			android:title="@string/pSize"/>
-	</PreferenceCategory>
-	<PreferenceCategory
-		android:summary="@string/pcsParashat"
-		android:title="@string/pc_parashat">
-		<CheckBoxPreference
-			android:defaultValue="@bool/showParashat"
-			android:key="showParashat"
-			android:title="@string/pShowParashat"/>
-		<pt.gu.zclock.ColorPreference
-			android:defaultValue="@color/cParshat"
-			android:dependency="showParashat"
-			android:key="cParshat"
-			android:title="@string/pColor"/>
-		<ListPreference
-			android:defaultValue="100"
-			android:dependency="showParashat"
-			android:entries="@array/sz_names"
-			android:entryValues="@array/szPercentM"
-			android:key="szParshat"
-			android:title="@string/pSize"/>
-	</PreferenceCategory>
-	<PreferenceCategory
-		android:summary="@string/pc_72Names"
-		android:title="72 Shemot">
-		<CheckBoxPreference
-			android:defaultValue="@bool/show72Hashem"
-			android:key="show72Hashem"
-			android:shouldDisableView="true"
-			android:title="@string/pShow72Names"/>
-		<pt.gu.zclock.ColorPreference
-			android:defaultValue="@color/cShemot"
-			android:dependency="show72Hashem"
-			android:key="cShemot"
-			android:title="@string/pColor"/>
-		<ListPreference
-			android:defaultValue="100"
-			android:dependency="show72Hashem"
-			android:entries="@array/sz_names"
-			android:entryValues="@array/szPercentS"
-			android:key="szShemot"
-			android:title="@string/pSize"/>
-		<ListPreference
-			android:defaultValue="@integer/nShemot"
-			android:dependency="show72Hashem"
-			android:entries="@array/nShemot_label"
-			android:entryValues="@array/nShemot"
-			android:key="nShemot"
-			android:title="Frequency"/>
-	</PreferenceCategory>
 	<PreferenceCategory android:title="Wallpaper Settings">
 		<CheckBoxPreference android:key="wpbLandscape"
 			android:title="Show Landscape"

@@ -51,7 +51,7 @@ import pt.gu.zclock.zcHelper.hebString;
 public class zcService extends Service{
 
     private final String       TAG   = "zcService";
-    private boolean            debug = true;
+    private boolean            debug = false;
 
     public static final String ZC_SETTINGSUPDATE = "pt.gu.zclock.service";
     public static final String ZC_FORECASTUPDATE  = "pt.gu.zclock.forecast";
@@ -231,12 +231,13 @@ public class zcService extends Service{
             zCalendar = new ComplexZmanimCalendar(mLocation.geoLocation());
             SharedPreferences.Editor ed = mPrefs.edit();
             ed.putLong("lastZmanimUpdate",newday);
+            ed.putLong("zHour",zCalendar.getTemporalHour());
             ed.putLong("sunrise",zCalendar.getSunrise().getTime());
             ed.putLong("sunset",zCalendar.getSunset().getTime());
-            ed.putLong("tzait72",zCalendar.getTzais72().getTime());
-            ed.putLong("tzait60",zCalendar.getTzais60().getTime());
-            ed.putLong("alot72",zCalendar.getAlos72().getTime());
-            ed.putLong("alot60",zCalendar.getAlos60().getTime());
+            ed.putLong("eAstTw",zCalendar.getEndAstronomicalTwilight().getTime());
+            ed.putLong("sAstTw", zCalendar.getBeginAstronomicalTwilight().getTime());
+            ed.putLong("eNauTw",zCalendar.getEndNauticalTwilight().getTime());
+            ed.putLong("sNauTw",zCalendar.getBeginNauticalTwilight().getTime());
             ed.putLong("chatzot",zCalendar.getChatzos().getTime());
             ed.putLong("midnight",zCalendar.getSolarMidnight().getTime());
             ed.apply();
@@ -408,42 +409,37 @@ public class zcService extends Service{
                     timeHours);
         }
 
-        int zMode = getIntPref("zmanimMode", appWidgetId);
-        Date[] sunsr;
+        int zAlot = getIntPref("zmanimAlot", appWidgetId);
+        int zTzet = getIntPref("zmanimTzet", appWidgetId);
 
-        switch (zMode) {
-            case 1:
-                sunsr = new Date[]{zCalendar.getTzais60(), zCalendar.getAlos60()};
-                break;
-            case 2:
-                sunsr = new Date[]{zCalendar.getTzais72(), zCalendar.getAlos72()};
-                break;
-            case 3:
-                sunsr = new Date[]{zCalendar.getTzais90(), zCalendar.getAlos90()};
-                break;
-            case 4:
-                sunsr = new Date[]{zCalendar.getTzais120(), zCalendar.getAlos120()};
-                break;
-            case 5:
-                sunsr = new Date[]{zCalendar.getTzais16Point1Degrees(), zCalendar.getAlos16Point1Degrees()};
-                break;
-            case 6:
-                sunsr = new Date[]{zCalendar.getTzais18Degrees(), zCalendar.getAlos18Degrees()};
-                break;
-            case 7:
-                sunsr = new Date[]{zCalendar.getTzais19Point8Degrees(), zCalendar.getAlos19Point8Degrees()};
-                break;
-            case 8:
-                sunsr = new Date[]{zCalendar.getTzais26Degrees(), zCalendar.getAlos26Degrees()};
-                break;
-            default:
-                sunsr = new Date[]{zCalendar.getSunset(), zCalendar.getSunrise()};
+        Date alot, tzet;
+        switch (zAlot) {
+            case 1: alot = zCalendar.getAlos60(); break;
+            case 2: alot = zCalendar.getAlos72();break;
+            case 3: alot = zCalendar.getAlos90();break;
+            case 4: alot = zCalendar.getAlos120();break;
+            case 5: alot = zCalendar.getAlos16Point1Degrees();break;
+            case 6: alot = zCalendar.getAlos18Degrees();break;
+            case 7: alot = zCalendar.getAlos19Point8Degrees();break;
+            case 8: alot = zCalendar.getAlos26Degrees();break;
+            default: alot = zCalendar.getSeaLevelSunrise();break;
+        }
+        switch (zTzet) {
+            case 1: tzet = zCalendar.getTzais60(); break;
+            case 2: tzet = zCalendar.getTzais72();break;
+            case 3: tzet = zCalendar.getTzais90();break;
+            case 4: tzet = zCalendar.getTzais120();break;
+            case 5: tzet = zCalendar.getTzais16Point1Degrees();break;
+            case 6: tzet = zCalendar.getTzais18Degrees();break;
+            case 7: tzet = zCalendar.getTzais19Point8Degrees();break;
+            case 8: tzet = zCalendar.getTzais26Degrees();break;
+            default: tzet = zCalendar.getSeaLevelSunset();break;
         }
 
-        mClock.setNewDayTimeMilis(sunsr[0].getTime());
+        mClock.setNewDayTimeMilis(tzet.getTime());
 
-        Date d1 = (zMode == 0) ? zCalendar.getTzais() : zCalendar.getSunset();
-        Date d2 = (zMode == 0) ? zCalendar.getAlosHashachar() : zCalendar.getSunrise();
+        Date d1 = (zTzet == 0) ? zCalendar.getTzais72() : zCalendar.getSunset();
+        Date d2 = (zAlot == 0) ? zCalendar.getAlos16Point1Degrees() : zCalendar.getSunrise();
 
         mClock.addMarks(tfRegularB,
                 czSun,
@@ -451,8 +447,8 @@ public class zcService extends Service{
                 getStringPref("tsZmanim_sun", appWidgetId),
                 getBoolPref("iZmanim_sun", appWidgetId),
                 new Date[]{
-                        sunsr[0],
-                        sunsr[1],
+                        tzet,
+                        alot,
                         d1,
                         d2,
                         zCalendar.getChatzos(),
@@ -473,7 +469,7 @@ public class zcService extends Service{
                     getDimensPref("szZmanim_sun", appWidgetId),
                     getStringPref("tsZmanim_sun", appWidgetId),
                     getBoolPref("iZmanim_sun", appWidgetId),
-                    new Date[]{sunsr[0]});
+                    new Date[]{tzet});
         }
 
         if (getBoolPref("showZmanim", appWidgetId)) {
@@ -485,12 +481,22 @@ public class zcService extends Service{
                     getBoolPref("iZmanim_main", appWidgetId),
                     new Date[]{
                             alotHarHabait,
-                            zCalendar.getSunriseOffsetByDegrees(AstronomicalCalendar.ASTRONOMICAL_ZENITH - 11),
-                            zCalendar.getSofZmanShma(sunsr[1], sunsr[0]),
-                            zCalendar.getSofZmanTfila(sunsr[1], sunsr[0]),
-                            zCalendar.getMinchaKetana(sunsr[1], sunsr[0]),
-                            zCalendar.getMinchaGedola(sunsr[1], sunsr[0]),
-                            zCalendar.getPlagHamincha(sunsr[1], sunsr[0])
+                            zCalendar.getSunriseOffsetByDegrees(100.2D),
+                            zCalendar.getSofZmanShmaMGA(),
+                            zCalendar.getSofZmanShmaGRA(),
+                            zCalendar.getSofZmanTfilaMGA(),
+                            zCalendar.getSofZmanTfilaGRA(),
+                            zCalendar.getMinchaKetana(),
+                            zCalendar.getMinchaGedola(),
+                            zCalendar.getPlagHamincha()
+                    /*new Date[]{
+                            alotHarHabait,
+                            zCalendar.getSunriseOffsetByDegrees(100.2D),
+                            zCalendar.getSofZmanShma(alot, tzet),
+                            zCalendar.getSofZmanTfila(alot, tzet),
+                            zCalendar.getMinchaKetana(alot, tzet),
+                            zCalendar.getMinchaGedola(alot, tzet),
+                            zCalendar.getPlagHamincha(alot, tzet)*/
                     });
 
         }
@@ -587,7 +593,7 @@ public class zcService extends Service{
         }
         mPrefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         SharedPreferences.Editor ed = mPrefs.edit();
-        ed.putString("currentPasuk",pasuk);
+        ed.putString("currentPasuk", pasuk);
         ed.putString("currentRef",ref);
         ed.putString("currentSefer",sefer);
         ed.apply();
@@ -634,29 +640,6 @@ public class zcService extends Service{
         }
     }
 
-    private void updateWallpaper(){
-        /*
-        Bitmap b = PrefsFragment.drawableToBitmap(mWallpaper).copy(Bitmap.Config.ARGB_8888,true);
-        Canvas c = new Canvas(b);
-        int color = 0x80FFFFFF;
-        if (weatherForecast!= null) color = weatherForecast[0].getColorCondition(0.6f);
-        color = zcHelper.xColor.setAlpha(80,color);
-        float time = zcHelper.timeEvents.timeToRadAngle(Calendar.getInstance().getTime().getTime());
-        float sunrise = zcHelper.timeEvents.timeToRadAngle(zCalendar.getSunrise().getTime());
-        float sunset = zcHelper.timeEvents.timeToRadAngle(zCalendar.getSunset().getTime());
-        zcHelper.RangeF r = new zcHelper.RangeF(1,-1);
-        float y = r.get((float)(Math.acos(sunset)-Math.cos(time-sunrise+sunset)));
-        float lum = r.scale(y,new zcHelper.RangeF(1,0));
-        color = zcHelper.xColor.setLum(lum,color);
-        c.drawColor(color);
-        try {
-            WallpaperManager.getInstance(mContext).setBitmap(b);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        */
-    }
-
     //region draw methods
     //updated to zcZmanim
     private Bitmap renderPasuk( PointF size, int appWidgetId, int type, int fColor, int bColor) {
@@ -665,7 +648,7 @@ public class zcService extends Service{
         Bitmap bitmap = Bitmap.createBitmap((int) size.x, (int) size.y, Bitmap.Config.ARGB_8888);
         bitmap = renderBackground(bitmap, bkgDark ? 0x80000000 : 0x80ffffff, 13f);
         final Typeface tfStam = Typeface.createFromAsset(mContext.getAssets(), "fonts/stmvelish.ttf");
-        final Typeface tfCondN = Typeface.create(mContext.getString(R.string.font_light), Typeface.BOLD);
+        final Typeface tfCondN = Typeface.create(mContext.getString(R.string.font_thin), Typeface.NORMAL);
 
         String[] currentPasuk = getCurrentPasuk();
         if (currentPasuk==null) return bitmap;
@@ -699,8 +682,8 @@ public class zcService extends Service{
                         tfCondN,
                         String.format("milim %d, otiot %d",milim,otiot),
                         bkgDark ? 0xa0ffffff : 0xa0000000,
-                        26f,
-                        bitmap.getHeight() -26f,
+                        18f,
+                        bitmap.getHeight() -20f,
                         0.9f);
         return bitmap;
     }

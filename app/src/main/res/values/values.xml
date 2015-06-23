@@ -3,6 +3,8 @@
 
 	<integer name="clockMode">0</integer>
 	<integer name="zmanimMode">2</integer>
+	<integer name="zmanimAlot">5</integer>
+	<integer name="zmanimTzet">2</integer>
 	<integer name="nShemot">20</integer>
 	<integer name="resTimeMins">2</integer>
 	<integer name="szTimeMins">50</integer>
@@ -46,4 +48,6 @@
 	<bool name="showWeather">true</bool>
 	<bool name="bClockElapsedTime">true</bool>
 	<bool name="wpOverlay">true</bool>
+	<bool name="wpbLandscape">true</bool>
+	<string name="wptLandscape">svg/mountains.svg</string>
 </resources>

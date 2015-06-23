@@ -137,14 +137,12 @@
 			android:key="bShowZmanim"
 			android:shouldDisableView	="true"
 			android:title="@string/pShowZmanim"/>
-		<ListPreference
-			android:defaultValue="@integer/zmanimMode"
-			android:dependency			="bShowZmanim"
-			android:entries				="@array/day_startend"
-			android:entryValues			="@array/day_startend_values"
-			android:key="zmanimMode"
-			android:summary="@string/p_sumZmanimMode"
-			android:title="@string/pZmanimMode"/>
+        <ListPreference android:key="zmanimAlot" android:dependency="bShowZmanim"
+            android:entries="@array/day_startend" android:entryValues="@array/day_startend_values"
+            android:title="Alot Hashachar" android:defaultValue="@integer/zmanimAlot"/>
+        <ListPreference android:key="zmanimTzet" android:dependency="bShowZmanim"
+            android:entries="@array/day_startend" android:entryValues="@array/day_startend_values"
+            android:title="Tzet" android:defaultValue="@integer/zmanimTzet"/>
 		<PreferenceCategory
 			android:dependency="bShowZmanim"
 			android:summary				="@string/pcat_sunrise_s"
@@ -294,11 +292,17 @@
 			android:key="nShemot"
 			android:title="Frequency"/>
 	</PreferenceCategory>
-	<PreferenceCategory android:title="Wallpaper Color">
-		<pt.gu.zclock.ColorPreference
-			android:defaultValue="#EEEEEE"
-			android:key="cWallpaper"
-			android:title="WallpaperColor"/>
+	<PreferenceCategory android:title="Wallpaper Settings">
+		<CheckBoxPreference android:key="wpbLandscape"
+			android:title="Show Landscape"
+			android:defaultValue="true"
+			android:shouldDisableView="true"/>
+		<ListPreference android:key="wptLandscape"
+			android:title="Landscape"
+			android:entries="@array/landscape"
+			android:entryValues="@array/landscAssetPath"
+			android:dependency="wpbLandscape"
+			android:defaultValue="@string/wptLandscape"/>
 		<CheckBoxPreference android:key="wpOverlay"
 			android:title="Cast Haze"
 			android:defaultValue="true"/>

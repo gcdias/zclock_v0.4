@@ -74,7 +74,7 @@ public class zcLocation {
         ed.putString("locName",this.locName);
         ed.putLong("lastLocationUpdate",this.lastUpdate);
 
-        ed.commit();
+        ed.apply();
     }
 
     public GeoLocation geoLocation(){
@@ -87,5 +87,14 @@ public class zcLocation {
         } catch (IOException ignored) {}
         return new GeoLocation(this.locName,
                 this.latitude, this.longitude, this.elevation, TimeZone.getDefault());
+    }
+    
+    public static GeoLocation getGeolocationPrefs(Context context){
+        SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+        return new GeoLocation(mPrefs.getString("locName",""),
+                (double)mPrefs.getFloat("latitude", 0f),
+                (double)mPrefs.getFloat("longitude", 0f),
+                (double)mPrefs.getFloat("elevation", 0f),
+                TimeZone.getDefault());
     }
 }

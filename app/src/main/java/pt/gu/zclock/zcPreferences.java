@@ -228,7 +228,10 @@ public class zcPreferences extends Activity
         loadPreference(BOOLEAN,"bLangHebrew",appWidgetId);
         loadPreference(BOOLEAN,"bClockElapsedTime",appWidgetId);
         loadPreference(BOOLEAN,"bWhiteOnBlack",appWidgetId);
+
         loadPreference(BOOLEAN,"wpOverlay",appWidgetId);
+        loadPreference(BOOLEAN,"wpbLandscape");
+        loadPreference(STRING,"wptLandscape");
 
         loadPreference(INT,"nShemot",appWidgetId);
     }
@@ -264,7 +267,7 @@ public class zcPreferences extends Activity
                 ed.putInt(key, (int)value);
                 break;
         }
-        ed.commit();
+        ed.apply();
         setSummary(key,value);
     }
 
@@ -299,7 +302,7 @@ public class zcPreferences extends Activity
                 ed.putInt(key, (int)value);
                 break;
         }
-        ed.commit();
+        ed.apply();
         setSummary(key,value);
     }
 
@@ -383,7 +386,10 @@ public class zcPreferences extends Activity
         savePreference(BOOLEAN,"bLangHebrew",appWidgetId);
         savePreference( BOOLEAN, "bClockElapsedTime", appWidgetId);
         savePreference( BOOLEAN, "bWhiteOnBlack", appWidgetId);
-        savePreference(BOOLEAN,"wpOverlay",appWidgetId);
+
+        savePreference(BOOLEAN, "wpOverlay");
+        savePreference(BOOLEAN, "wpbLandscape");
+        savePreference(STRING, "wptLandscape");
 
         savePreference(INT,"nShemot",appWidgetId);
 

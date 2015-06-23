@@ -37,6 +37,22 @@
 		<item>Ana Bekoach</item>
 		<item>Parashat Hashavua</item>
 	</string-array>
+	<string-array name="landscape">
+		<item>Mountains</item>
+		<item>Douro</item>
+		<item>Porto</item>
+		<item>Barcelona</item>
+		<item>Har Habait</item>
+		<item>Midgal David</item>
+	</string-array>
+	<string-array name="landscAssetPath">
+		<item>svg/mountains.svg</item>
+		<item>svg/encostadodouro.svg</item>
+		<item>svg/porto.svg</item>
+		<item>svg/barcelona.svg</item>
+		<item>svg/yr_harhabait.svg</item>
+		<item>svg/yr_migdaldavid.svg</item>
+	</string-array>
 	<string-array name="clockType_value">
 		<item>0</item>
 		<item>1</item>
@@ -154,15 +170,15 @@
 		<item>64</item>
 	</string-array>
 	<string-array name="day_startend">
-		<item>Shekiyah Hachamah</item>
-		<item>Tzet Hakokhavim 60 min.</item>
-		<item>Tzet Hakokhavim 72 min.</item>
-		<item>Tzet Hakokhavim 90 min.</item>
-		<item>Tzet Hakokhavim 120 min.</item>
-		<item>Tzet Hakokhavim 16.1°</item>
-		<item>Tzet Hakokhavim 18°</item>
-		<item>Tzet Hakokhavim 19.8°</item>
-		<item>Tzet Hakokhavim 26°</item>
+		<item>Sunset/Sunrise</item>
+		<item>60 min.</item>
+		<item>72 min.</item>
+		<item>90 min.</item>
+		<item>120 min.</item>
+		<item>16.1°</item>
+		<item>18°</item>
+		<item>19.8°</item>
+		<item>26°</item>
 	</string-array>
 	<string-array name="day_startend_values">
 		<item>0</item>

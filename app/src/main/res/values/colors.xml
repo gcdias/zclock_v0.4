@@ -12,22 +12,22 @@
 	<color name="cShemot">#07ffffff</color>
     <color name="cWallpaper">#fff2eeee</color>
 
-    <color name="zChtL">#ff020204</color>
-    <color name="hChtL">#ff080610</color>
+    <color name="zChtL">#ff090818</color>
+    <color name="hChtL">#ff090818</color>
     <color name="zAl72">#ff000208</color>
     <color name="hAl72">#ff264280</color>
     <color name="zAl60">#ff407880</color>
     <color name="hAl60">#ffb07080</color>
-    <color name="zSris">#ff2080b0</color>
+    <color name="zSris">#ff70b0b8</color>
     <color name="hSris">#fffaf8f4</color>
     <color name="zChtY">#ffa0d0ff</color>
     <color name="hChtY">#ffb0e0ff</color>
-    <color name="zSset">#ff70c4c8</color>
-    <color name="hSset">#fffaf8f4</color>
-    <color name="zTz60">#ff407880</color>
+    <color name="zSset">#ff70b4b8</color>
+    <color name="hSset">#fffaf4e0</color>
+    <color name="zTz60">#ff405870</color>
     <color name="hTz60">#ffb07080</color>
-    <color name="zTz72">#ff112130</color>
-    <color name="hTz72">#ff726572</color>
+    <color name="zTz72">#ff090818</color>
+    <color name="hTz72">#ff100828</color>
 
     <string-array name="themeUser">
         <item>Zmanim Clock</item>

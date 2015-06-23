@@ -31,6 +31,10 @@ import android.view.WindowManager;
 import com.applantation.android.svg.SVG;
 import com.applantation.android.svg.SVGParser;
 
+import net.sourceforge.zmanim.AstronomicalCalendar;
+import net.sourceforge.zmanim.ComplexZmanimCalendar;
+import net.sourceforge.zmanim.util.GeoLocation;
+
 /**
  * Created by GU on 07-06-2015.
  */
@@ -40,9 +44,6 @@ public class zcWallpaper extends WallpaperService{
     private static final boolean debug = true;
 
     public static final String intentUpdater = "pt.gu.zclock.zcWallpaper";
-
-    private static PictureDrawable svgPicture;
-    private static SVG svgBackground;
 
     /**
      * Must be implemented to return a new instance of the wallpaper's engine.
@@ -55,19 +56,18 @@ public class zcWallpaper extends WallpaperService{
         return new zcEngine();
     }
 
-    public class zcEngine extends Engine{
+    public class zcEngine extends Engine implements SharedPreferences.OnSharedPreferenceChangeListener{
 
-        private boolean mVisible = false;
-        private final Handler mHandler = new Handler();
-        private SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        private int color = 0;
-        private int x_offset=0;
-
-        private Bitmap background;
-        private boolean checkBackground = true;
-
-        private int[] upColors,dwColors;
+        private boolean         mVisible = false;
+        private final Handler   mHandler = new Handler();
+        private int             x_offset=0;
+        private int             canvas_width=1;
+        private float           xoffset_factor=1;
+        private Bitmap          background;
+        private int[]           upColors,dwColors;
         private zcHelper.colorGradient uGrad, dGrad;
+
+        private SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         private final Runnable mUpdateDisplay = new Runnable() {
             @Override
@@ -75,20 +75,6 @@ public class zcWallpaper extends WallpaperService{
                 draw();
             }
         };
-
-        private BroadcastReceiver broadcastUpdater = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if (intent.getAction().equals(intentUpdater)){
-                    updateGradient();
-                }
-            }
-        };
-
-        private IntentFilter intentFilter = new IntentFilter();
-        {
-            intentFilter.addAction(intentUpdater);
-        }
 
         private void draw() {
             SurfaceHolder holder = getSurfaceHolder();
@@ -98,7 +84,10 @@ public class zcWallpaper extends WallpaperService{
             try {
                 c = holder.lockCanvas();
                 if (c != null) {
-                    updateGradient();
+                    canvas_width = c.getWidth();
+
+                    if (uGrad == null || dGrad == null) updateGradient();
+
                     int c1 = uGrad.getColor(getDayFraction(System.currentTimeMillis()));
                     int c2 = dGrad.getColor(getDayFraction(System.currentTimeMillis()));
                     Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -115,19 +104,18 @@ public class zcWallpaper extends WallpaperService{
                         }
 
                     }
-                    zcHelper.SolarTime s = new zcHelper.SolarTime(mPrefs.getLong("sunsettime",0),(double)mPrefs.getFloat("latitude",0));
+                    zcHelper.SolarTime s = new zcHelper.SolarTime(mPrefs.getLong("sunset",0),(double)mPrefs.getFloat("latitude",0));
                     zcHelper.RangeF y = new zcHelper.RangeF(1f,0);
                     float h = c.getHeight();
                     float y0 = y.scale(s.getSunPosition(),0,h*0.7f);
-                    p.setShader(new LinearGradient(0, y0, 0, h, c1, c2, Shader.TileMode.CLAMP));
+                    p.setShader(new LinearGradient(0, y0, 0, h*0.9f, c1, c2, Shader.TileMode.CLAMP));
                     c.drawPaint(p);
                     if (background==null){
-                        background= zcHelper.xSGV.getBitmap(getApplicationContext(),"svg/encostadodouro.svg");
+                        updateBackground();
                     } else {
-                        c.drawBitmap(background, x_offset, c.getHeight() - background.getHeight(), p);
-                        //Paint black = new Paint();
-                        //black.setColor(Color.BLACK);
-                        //c.drawRect(0,c.getHeight()-50,c.getWidth(),c.getHeight(),black);
+                        p = new Paint(Paint.ANTI_ALIAS_FLAG);
+                        p.setColor(Color.BLACK);
+                        c.drawBitmap(background, (int)(x_offset*xoffset_factor), c.getHeight() - background.getHeight(), p);
                     }
                 }
             } finally {
@@ -154,17 +142,16 @@ public class zcWallpaper extends WallpaperService{
 
             mVisible = visible;
             if (visible) {
-                registerReceiver(broadcastUpdater,intentFilter);
                 draw();
+                mPrefs.registerOnSharedPreferenceChangeListener(this);
             } else {
-                unregisterReceiver(broadcastUpdater);
                 mHandler.removeCallbacks(mUpdateDisplay);
+                mPrefs.unregisterOnSharedPreferenceChangeListener(this);
             }
         }
 
         @Override
         public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
             draw();
         }
 
@@ -172,6 +159,7 @@ public class zcWallpaper extends WallpaperService{
         public void onSurfaceDestroyed(SurfaceHolder holder) {
             mVisible = false;
             mHandler.removeCallbacks(mUpdateDisplay);
+            mPrefs.unregisterOnSharedPreferenceChangeListener(this);
         }
 
         @Override
@@ -181,39 +169,44 @@ public class zcWallpaper extends WallpaperService{
             mHandler.removeCallbacks(mUpdateDisplay);
         }
 
+        private void updateBackground(){
+            background= zcHelper.xSGV.getBitmap(getApplicationContext(),mPrefs.getString("wptLandscape","svg/mountains.svg"));
+            xoffset_factor = background.getWidth()/canvas_width;
+        }
+
         private void updateGradient(){
 
             float[] pos = new float[]{
-                    getDayFraction(mPrefs.getLong("midnight", 0)),
-                    getDayFraction(mPrefs.getLong("alot72", 0)),
-                    getDayFraction(mPrefs.getLong("alot60", 0)),
-                    getDayFraction(mPrefs.getLong("sunriset", 0)),
+                    getDayFraction(mPrefs.getLong("midnight",0)),
+                    getDayFraction(mPrefs.getLong("sAstTw",0)),
+                    getDayFraction(mPrefs.getLong("sNauTw", 0)),
+                    getDayFraction(mPrefs.getLong("sunrise", 0)),
                     getDayFraction(mPrefs.getLong("chatzot", 0)),
                     getDayFraction(mPrefs.getLong("sunset", 0)),
-                    getDayFraction(mPrefs.getLong("tzait60", 0)),
-                    getDayFraction(mPrefs.getLong("tzait72", 0))};
+                    getDayFraction(mPrefs.getLong("eNauTw",0)),
+                    getDayFraction(mPrefs.getLong("eAstTw", 0))};
 
             Resources res = getApplicationContext().getResources();
             if (upColors == null) upColors  = new int[]{
-                    res.getColor(R.color.zChtL),
-                    res.getColor(R.color.zAl72),
-                    res.getColor(R.color.zAl60),
-                    res.getColor(R.color.zSris),
-                    res.getColor(R.color.zChtY),
-                    res.getColor(R.color.zSset),
-                    res.getColor(R.color.zTz60),
-                    res.getColor(R.color.zTz72)
+                    res.getColor(R.color.zChtL), //0
+                    res.getColor(R.color.zAl72), //1
+                    res.getColor(R.color.zAl60), //2
+                    res.getColor(R.color.zSris), //3
+                    res.getColor(R.color.zChtY), //4
+                    res.getColor(R.color.zSset), //5
+                    res.getColor(R.color.zTz60), //6
+                    res.getColor(R.color.zTz72)  //7
             };
 
             if (dwColors == null) dwColors  = new int[]{
-                    res.getColor(R.color.hChtL),
-                    res.getColor(R.color.hAl72),
-                    res.getColor(R.color.hAl60),
-                    res.getColor(R.color.hSris),
-                    res.getColor(R.color.hChtY),
-                    res.getColor(R.color.hSset),
-                    res.getColor(R.color.hTz60),
-                    res.getColor(R.color.hTz72)
+                    res.getColor(R.color.hChtL), //0
+                    res.getColor(R.color.hAl72), //1
+                    res.getColor(R.color.hAl60), //2
+                    res.getColor(R.color.hSris), //3
+                    res.getColor(R.color.hChtY), //4
+                    res.getColor(R.color.hSset), //5
+                    res.getColor(R.color.hTz60), //6
+                    res.getColor(R.color.hTz72)  //7
             };
 
             uGrad = new zcHelper.colorGradient(upColors,pos);
@@ -224,5 +217,13 @@ public class zcWallpaper extends WallpaperService{
             return time/60000%1440/1440f;
         }
 
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+            if (key.equals("wptLandscape")){
+                background= zcHelper.xSGV.getBitmap(getApplicationContext(),mPrefs.getString("wptLandscape","svg/mountains.svg"));
+            } else if (key.equals("latitude") || key.equals("longitude")){
+                updateGradient();
+            }
+        }
     }
 }
